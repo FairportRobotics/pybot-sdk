@@ -31,6 +31,7 @@ where = ["src"]
 pybot_sdk = [
     "hardware/schema/*.json",
     "templates/magicbot/*",
+    "templates/magicbot/.github/workflows/*",
     "templates/magicbot/config/*",
     "templates/magicbot/tests/*",
 ]

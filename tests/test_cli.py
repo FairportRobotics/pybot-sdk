@@ -10,6 +10,7 @@ def test_new_creates_runnable_magicbot_project(tmp_path: Path) -> None:
     assert (destination / "robot.py").is_file()
     assert (destination / "tests" / "test_drive.py").is_file()
     assert (destination / "config" / "hardware.yml").is_file()
+    assert (destination / ".github" / "workflows" / "robotpy.yml").is_file()
     assert main(["hardware", "validate", str(destination / "config" / "hardware.yml")]) == 0
     generated_map = destination / "hardware_map.py"
     assert main(
