@@ -11,7 +11,7 @@ Use Python 3.14 for this RobotPy 2026 template:
 python3.14 -m venv .venv
 source .venv/bin/activate
 python -m pip install robotpy==2026.2.2
-robotpy test
+robotpy test --no-isolation
 ```
 
 On Windows, activate the environment with `.venv\Scripts\activate`.

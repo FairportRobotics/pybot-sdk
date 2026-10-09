@@ -21,4 +21,4 @@ jobs:
       - run: |
           pybot new /tmp/generated-robot --template magicbot
           cd /tmp/generated-robot
-          robotpy test
+          robotpy test --no-isolation
