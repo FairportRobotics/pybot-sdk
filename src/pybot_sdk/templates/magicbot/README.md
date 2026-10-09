@@ -32,8 +32,10 @@ not load YAML. `hardware_map.py` is generated from the sample map and should
 be regenerated and committed with `config/hardware.yml` whenever assignments
 change; do not edit the generated module by hand.
 
-The test injects simulated Xbox input through the MagicBot lifecycle and
-checks a simulated WPILib PWM output. A clean simulation is the MVP
+The tests inject simulated Xbox input through the MagicBot lifecycle, check a
+simulated WPILib PWM output, and verify the component clears its command when
+the Driver Station disables the robot. This is a software behavior check, not
+an E-stop or physical safety certification. A clean simulation is the MVP
 compatibility proxy for roboRIO operation; physical deployment has not yet
 been verified.
 

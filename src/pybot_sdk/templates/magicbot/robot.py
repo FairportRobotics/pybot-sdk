@@ -15,6 +15,10 @@ class Drive:
         """Apply the current controller input to the simulated motor output."""
         self.motor.set(self.controller.getLeftY())
 
+    def on_disable(self) -> None:
+        """Stop the motor when MagicBot transitions the robot to disabled."""
+        self.motor.set(0.0)
+
 
 class Robot(MagicRobot):
     """MagicBot entry point for the starter project."""
