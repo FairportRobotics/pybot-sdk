@@ -1,8 +1,11 @@
+"""End-to-end logic simulation for the MagicBot proof project."""
+
 import pytest
 from wpilib.simulation import PWMSim, XboxControllerSim
 
 
 def test_controller_input_reaches_magicbot_component_output(control) -> None:
+    """Exercise teleop input through the real component and output path."""
     controller = XboxControllerSim(0)
     motor = PWMSim(0)
 

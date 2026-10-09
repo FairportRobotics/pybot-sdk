@@ -13,6 +13,8 @@ jobs:
         with:
           python-version: "3.14"
       - run: python -m pip install .[test] robotpy==2026.2.2
+      - run: ruff check .
+      - run: ruff format --check .
       - run: python -m pytest
       - run: pybot hardware validate src/pybot_sdk/templates/magicbot/config/hardware.yml
       - run: |

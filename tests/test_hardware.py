@@ -1,10 +1,11 @@
+"""Safe YAML loading, hardware-map semantics, and diagnostic tests."""
+
 from copy import deepcopy
 from pathlib import Path
 
 from pybot_sdk.cli import main
 from pybot_sdk.hardware.loader import HardwareMapParseError, load_hardware_map
 from pybot_sdk.hardware.validate import validate_hardware_map
-
 
 VALID_MAP = {
     "schema_version": 1,
@@ -27,6 +28,7 @@ VALID_MAP = {
 
 
 def test_accepts_supported_falcon_and_kraken_identifiers() -> None:
+    """Accept both supported CTRE motor identifiers on Talon FX devices."""
     document = deepcopy(VALID_MAP)
     falcon = deepcopy(document["devices"][0])
     falcon.update(name="arm_motor", can_id=2, motor="falcon_500", subsystem="arm")
@@ -37,6 +39,7 @@ def test_accepts_supported_falcon_and_kraken_identifiers() -> None:
 
 
 def test_rejects_unknown_fields_with_stable_structural_diagnostic() -> None:
+    """Report typoed properties as stable schema diagnostics."""
     document = deepcopy(VALID_MAP)
     document["devices"][0]["canid"] = 4
 
@@ -48,6 +51,7 @@ def test_rejects_unknown_fields_with_stable_structural_diagnostic() -> None:
 
 
 def test_rejects_duplicate_can_ids_and_names_both_conflicting_entries() -> None:
+    """Identify a CAN collision and point to both device entries."""
     document = deepcopy(VALID_MAP)
     second = deepcopy(document["devices"][0])
     second.update(name="drive_right", inverted=True)
@@ -61,6 +65,7 @@ def test_rejects_duplicate_can_ids_and_names_both_conflicting_entries() -> None:
 
 
 def test_rejects_unresolved_bus_and_component_references() -> None:
+    """Report unresolved bus, subsystem, and component-device references."""
     document = deepcopy(VALID_MAP)
     document["devices"][0]["bus"] = "canivore"
     document["devices"][0]["subsystem"] = "arm"
@@ -72,6 +77,7 @@ def test_rejects_unresolved_bus_and_component_references() -> None:
 
 
 def test_unowned_device_is_a_nonfatal_warning() -> None:
+    """Warn without failing when a device has no explicit component owner."""
     document = deepcopy(VALID_MAP)
     document["devices"][0].pop("subsystem")
     document["magicbot"]["components"][0]["devices"] = []
@@ -84,6 +90,7 @@ def test_unowned_device_is_a_nonfatal_warning() -> None:
 
 
 def test_declared_subsystem_must_list_its_device() -> None:
+    """Require device and MagicBot component ownership declarations to agree."""
     document = deepcopy(VALID_MAP)
     document["magicbot"]["components"][0]["devices"] = []
 
@@ -94,6 +101,7 @@ def test_declared_subsystem_must_list_its_device() -> None:
 
 
 def test_rejects_duplicate_yaml_keys(tmp_path: Path) -> None:
+    """Reject duplicate keys rather than silently keeping the last value."""
     hardware_map = tmp_path / "hardware.yml"
     hardware_map.write_text("schema_version: 1\nschema_version: 1\n", encoding="utf-8")
 
@@ -107,7 +115,11 @@ def test_rejects_duplicate_yaml_keys(tmp_path: Path) -> None:
 
 
 def test_rejects_yaml_aliases_and_tags(tmp_path: Path) -> None:
-    for source in ("name: &shared value\ncopy: *shared\n", "!!python/object/apply:os.system ['true']\n"):
+    """Reject YAML syntax that is not part of the hardware-map subset."""
+    for source in (
+        "name: &shared value\ncopy: *shared\n",
+        "!!python/object/apply:os.system ['true']\n",
+    ):
         hardware_map = tmp_path / "hardware.yml"
         hardware_map.write_text(source, encoding="utf-8")
 
@@ -120,6 +132,7 @@ def test_rejects_yaml_aliases_and_tags(tmp_path: Path) -> None:
 
 
 def test_validate_cli_reports_invalid_map_and_exit_code(tmp_path: Path, capsys) -> None:
+    """Return a nonzero exit and stable code for unsupported schema versions."""
     hardware_map = tmp_path / "hardware.yml"
     hardware_map.write_text("schema_version: 99\n", encoding="utf-8")
 

@@ -1,8 +1,11 @@
+"""RobotPy simulation tests for the starter drive behavior."""
+
 import pytest
 from wpilib.simulation import PWMSim, XboxControllerSim
 
 
 def test_controller_input_reaches_magicbot_component_output(control) -> None:
+    """Verify simulated Xbox input reaches a motor through MagicBot's loop."""
     controller = XboxControllerSim(0)
     motor = PWMSim(0)
 

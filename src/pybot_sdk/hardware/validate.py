@@ -1,5 +1,6 @@
 """Structural and semantic validation for hardware maps."""
 
+import json
 from dataclasses import dataclass
 from importlib import resources
 from typing import Any
@@ -9,6 +10,8 @@ from jsonschema import Draft202012Validator
 
 @dataclass(frozen=True)
 class Diagnostic:
+    """One stable, path-addressed validation error or warning."""
+
     code: str
     path: str
     message: str
@@ -31,8 +34,6 @@ def _schema() -> dict[str, Any]:
         .joinpath("hardware", "schema", "v1.json")
         .read_text(encoding="utf-8")
     )
-    import json
-
     return json.loads(schema_text)
 
 
@@ -88,7 +89,8 @@ def _semantic_diagnostics(document: dict[str, Any]) -> list[Diagnostic]:
                         "HWM102",
                         f"devices[{index}].can_id",
                         f"CAN ID {can_id} on bus {bus_name!r} conflicts with "
-                        f"devices[{ids[can_id]}].can_id; assign a unique ID on this bus",
+                        f"devices[{ids[can_id]}].can_id; assign a unique ID "
+                        "on this bus",
                     )
                 )
             else:
@@ -194,6 +196,7 @@ def _semantic_diagnostics(document: dict[str, Any]) -> list[Diagnostic]:
 
 
 def validate_hardware_map(document: object) -> list[Diagnostic]:
+    """Apply schema and cross-reference checks to a loaded hardware map."""
     validator = Draft202012Validator(_schema())
     errors = sorted(
         validator.iter_errors(document),
@@ -210,9 +213,7 @@ def validate_hardware_map(document: object) -> list[Diagnostic]:
                 suggestion = "add the missing required field"
             else:
                 suggestion = "correct the value to match schema version 1"
-            diagnostics.append(
-                Diagnostic(code, path, f"{error.message}; {suggestion}")
-            )
+            diagnostics.append(Diagnostic(code, path, f"{error.message}; {suggestion}"))
         return diagnostics
 
     return _semantic_diagnostics(document)

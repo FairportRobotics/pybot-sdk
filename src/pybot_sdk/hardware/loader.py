@@ -8,7 +8,10 @@ from yaml.tokens import AliasToken, AnchorToken, TagToken
 
 
 class HardwareMapParseError(ValueError):
+    """Parse failure with a stable diagnostic code and source location."""
+
     def __init__(self, code: str, location: str, message: str):
+        """Store the user-facing diagnostic fields on the exception."""
         self.code = code
         self.location = location
         self.message = message
@@ -43,6 +46,7 @@ class _StrictSafeLoader(yaml.SafeLoader):
 
 
 def load_hardware_map(path: Path) -> object:
+    """Load YAML safely, rejecting duplicate keys, aliases, anchors, and tags."""
     try:
         source = path.read_text(encoding="utf-8")
     except (OSError, UnicodeError) as error:

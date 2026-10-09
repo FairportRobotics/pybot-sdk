@@ -1,9 +1,9 @@
 """Command-line interface for pybot-sdk."""
 
 import argparse
+import sys
 from importlib import resources
 from pathlib import Path
-import sys
 
 from pybot_sdk.hardware.generate import render_hardware_module, write_hardware_module
 from pybot_sdk.hardware.loader import HardwareMapParseError, load_hardware_map
@@ -21,6 +21,7 @@ def _copy_template(source, destination: Path) -> None:
 
 
 def create_project(destination: Path, template_name: str) -> None:
+    """Copy a packaged project template into an empty destination directory."""
     template = resources.files("pybot_sdk").joinpath("templates", template_name)
     if not template.is_dir():
         raise ValueError(f"unknown template: {template_name}")
@@ -37,6 +38,7 @@ def create_project(destination: Path, template_name: str) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the argument parser for scaffold and hardware-map commands."""
     parser = argparse.ArgumentParser(prog="pybot")
     commands = parser.add_subparsers(dest="command", required=True)
     new = commands.add_parser("new", help="create a RobotPy project")
@@ -48,21 +50,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     new.add_argument("--template", choices=("magicbot",), default="magicbot")
     hardware = commands.add_parser("hardware", help="inspect hardware maps")
-    hardware_commands = hardware.add_subparsers(
-        dest="hardware_command", required=True
-    )
+    hardware_commands = hardware.add_subparsers(dest="hardware_command", required=True)
     validate = hardware_commands.add_parser("validate", help="validate a YAML map")
-    validate.add_argument("path", nargs="?", type=Path, default=Path("config/hardware.yml"))
+    validate.add_argument(
+        "path", nargs="?", type=Path, default=Path("config/hardware.yml")
+    )
     generate = hardware_commands.add_parser(
         "generate", help="generate a Python hardware-data module"
     )
-    generate.add_argument("path", nargs="?", type=Path, default=Path("config/hardware.yml"))
+    generate.add_argument(
+        "path", nargs="?", type=Path, default=Path("config/hardware.yml")
+    )
     generate.add_argument("--output", type=Path, required=True)
     generate.add_argument("--force", action="store_true")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run a CLI command and return its process exit code."""
     args = build_parser().parse_args(argv)
     if args.command == "hardware":
         try:
