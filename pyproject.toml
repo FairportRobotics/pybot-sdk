@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pybot-sdk"
+version = "0.1.0"
+description = "Development tools for RobotPy robot projects"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.scripts]
+pybot = "pybot_sdk.cli:main"
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pybot_sdk = ["templates/magicbot/*", "templates/magicbot/tests/*"]
