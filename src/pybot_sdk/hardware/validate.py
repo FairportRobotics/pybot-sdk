@@ -104,6 +104,18 @@ def _semantic_diagnostics(document: dict[str, Any]) -> list[Diagnostic]:
                     "to magicbot.components or correct the name",
                 )
             )
+        elif subsystem is not None:
+            component_index, component = components[subsystem]
+            if device_name not in component["devices"]:
+                diagnostics.append(
+                    Diagnostic(
+                        "HWM108",
+                        f"devices[{index}].subsystem",
+                        f"device {device_name!r} declares {subsystem!r}, but is not "
+                        f"listed in magicbot.components[{component_index}].devices; "
+                        "make the ownership declarations agree",
+                    )
+                )
 
     ports: dict[int, int] = {}
     for index, controller in enumerate(document["controllers"]):
@@ -165,6 +177,18 @@ def _semantic_diagnostics(document: dict[str, Any]) -> list[Diagnostic]:
                         "the ownership declarations agree",
                     )
                 )
+
+    for index, device in enumerate(document["devices"]):
+        if device["name"] not in owners and "subsystem" not in device:
+            diagnostics.append(
+                Diagnostic(
+                    "HWM201",
+                    f"devices[{index}].subsystem",
+                    "device has no MagicBot component owner; add an explicit "
+                    "subsystem assignment if it should be component-managed",
+                    severity="warning",
+                )
+            )
 
     return diagnostics
 

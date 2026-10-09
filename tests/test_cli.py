@@ -9,6 +9,7 @@ def test_new_creates_runnable_magicbot_project(tmp_path: Path) -> None:
     assert main(["new", str(destination), "--template", "magicbot"]) == 0
     assert (destination / "robot.py").is_file()
     assert (destination / "tests" / "test_drive.py").is_file()
+    assert (destination / "tests" / "test_startup.py").is_file()
     assert (destination / "config" / "hardware.yml").is_file()
     assert (destination / ".github" / "workflows" / "robotpy.yml").is_file()
     assert main(["hardware", "validate", str(destination / "config" / "hardware.yml")]) == 0
@@ -64,3 +65,22 @@ def test_generate_rejects_invalid_map_without_creating_output(
     ) == 1
     assert not generated.exists()
     assert "ERROR HWM002" in capsys.readouterr().err
+
+
+def test_validate_cli_keeps_warnings_nonfatal(tmp_path: Path, capsys) -> None:
+    hardware_map = tmp_path / "hardware.yml"
+    hardware_map.write_text(
+        """schema_version: 1
+robot: {name: example_bot}
+can_buses: [{name: rio, vendor_bus_name: ''}]
+controllers: [{name: driver, type: xbox, port: 0}]
+devices: [{name: spare, type: talon_fx, bus: rio, can_id: 1, motor: kraken}]
+magicbot: {components: []}
+""",
+        encoding="utf-8",
+    )
+
+    assert main(["hardware", "validate", str(hardware_map)]) == 0
+    output = capsys.readouterr().out
+    assert "WARNING HWM201" in output
+    assert "Hardware map is valid" in output

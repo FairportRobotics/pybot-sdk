@@ -71,6 +71,28 @@ def test_rejects_unresolved_bus_and_component_references() -> None:
     assert {item.code for item in diagnostics} == {"HWM103", "HWM105", "HWM106"}
 
 
+def test_unowned_device_is_a_nonfatal_warning() -> None:
+    document = deepcopy(VALID_MAP)
+    document["devices"][0].pop("subsystem")
+    document["magicbot"]["components"][0]["devices"] = []
+
+    diagnostics = validate_hardware_map(document)
+
+    assert len(diagnostics) == 1
+    assert diagnostics[0].code == "HWM201"
+    assert diagnostics[0].severity == "warning"
+
+
+def test_declared_subsystem_must_list_its_device() -> None:
+    document = deepcopy(VALID_MAP)
+    document["magicbot"]["components"][0]["devices"] = []
+
+    diagnostics = validate_hardware_map(document)
+
+    assert diagnostics[0].code == "HWM108"
+    assert diagnostics[0].path == "devices[0].subsystem"
+
+
 def test_rejects_duplicate_yaml_keys(tmp_path: Path) -> None:
     hardware_map = tmp_path / "hardware.yml"
     hardware_map.write_text("schema_version: 1\nschema_version: 1\n", encoding="utf-8")
