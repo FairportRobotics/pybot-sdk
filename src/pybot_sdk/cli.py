@@ -5,6 +5,7 @@ from importlib import resources
 from pathlib import Path
 import sys
 
+from pybot_sdk.hardware.generate import render_hardware_module, write_hardware_module
 from pybot_sdk.hardware.loader import HardwareMapParseError, load_hardware_map
 from pybot_sdk.hardware.validate import validate_hardware_map
 
@@ -52,6 +53,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     validate = hardware_commands.add_parser("validate", help="validate a YAML map")
     validate.add_argument("path", nargs="?", type=Path, default=Path("config/hardware.yml"))
+    generate = hardware_commands.add_parser(
+        "generate", help="generate a Python hardware-data module"
+    )
+    generate.add_argument("path", nargs="?", type=Path, default=Path("config/hardware.yml"))
+    generate.add_argument("--output", type=Path, required=True)
+    generate.add_argument("--force", action="store_true")
     return parser
 
 
@@ -77,6 +84,19 @@ def main(argv: list[str] | None = None) -> int:
             )
         if any(diagnostic.severity == "error" for diagnostic in diagnostics):
             return 1
+        if args.hardware_command == "generate":
+            try:
+                content = render_hardware_module(document)
+                changed = write_hardware_module(
+                    content, args.path, args.output, force=args.force
+                )
+            except (OSError, ValueError) as error:
+                print(f"ERROR HWM200 {args.output}: {error}", file=sys.stderr)
+                return 2
+            result = "Generated" if changed else "Already up to date"
+            print(f"{result}: {args.output}")
+            return 0
+
         print(f"Hardware map is valid: {args.path}")
         return 0
 

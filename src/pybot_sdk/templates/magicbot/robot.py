@@ -1,5 +1,6 @@
 import wpilib
 from magicbot import MagicRobot
+from hardware_map import CONTROLLERS
 
 
 class Drive:
@@ -14,7 +15,7 @@ class Robot(MagicRobot):
     drive: Drive
 
     def createObjects(self) -> None:
-        self.controller = wpilib.XboxController(0)
+        self.controller = wpilib.XboxController(CONTROLLERS["driver"]["port"])
         self.motor = wpilib.PWMSparkMax(0)
 
     def teleopPeriodic(self) -> None:
