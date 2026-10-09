@@ -16,6 +16,16 @@ robotpy test
 
 On Windows, activate the environment with `.venv\Scripts\activate`.
 
+## Hardware Map
+
+Edit `config/hardware.yml` to record reviewed CAN assignments and the driver
+controller port. With the SDK CLI installed in this development environment,
+validate the map before testing or deploying:
+
+```sh
+pybot hardware validate config/hardware.yml
+```
+
 The test injects simulated Xbox input through the MagicBot lifecycle and
 checks a simulated WPILib PWM output. A clean simulation is the MVP
 compatibility proxy for roboRIO operation; physical deployment has not yet
@@ -36,5 +46,7 @@ checklist. Simulation does not replace inspection or physical safety checks.
 ## File Ownership
 
 - `robot.py` and `tests/`: student-owned robot behavior and tests.
+- `config/hardware.yml`: student-edited hardware assignments; review changes
+  with the team before deployment.
 - `pyproject.toml`, `physics.py`, and this README: generated starting files;
   safe to edit. The physics hook models no mechanism dynamics.

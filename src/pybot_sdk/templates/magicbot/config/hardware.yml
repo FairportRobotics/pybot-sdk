@@ -1,0 +1,37 @@
+schema_version: 1
+
+robot:
+  name: example_bot
+
+can_buses:
+  - name: rio
+    vendor_bus_name: ""
+
+controllers:
+  - name: driver
+    type: xbox
+    port: 0
+
+devices:
+  - name: drive_left
+    type: talon_fx
+    bus: rio
+    can_id: 1
+    motor: kraken
+    subsystem: drivetrain
+    inverted: false
+
+  - name: drive_right
+    type: talon_fx
+    bus: rio
+    can_id: 4
+    motor: kraken
+    subsystem: drivetrain
+    inverted: true
+
+magicbot:
+  components:
+    - name: drivetrain
+      devices:
+        - drive_left
+        - drive_right

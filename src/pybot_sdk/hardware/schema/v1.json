@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pybot-sdk.team578.org/schemas/hardware/v1.json",
+  "title": "pybot-sdk hardware map version 1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "robot", "can_buses", "controllers", "devices", "magicbot"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "robot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {"$ref": "#/$defs/name"}
+      }
+    },
+    "can_buses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "vendor_bus_name"],
+        "properties": {
+          "name": {"$ref": "#/$defs/name"},
+          "vendor_bus_name": {"type": "string"}
+        }
+      }
+    },
+    "controllers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "type", "port"],
+        "properties": {
+          "name": {"$ref": "#/$defs/name"},
+          "type": {"const": "xbox"},
+          "port": {"type": "integer", "minimum": 0, "maximum": 5}
+        }
+      }
+    },
+    "devices": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/device"}
+    },
+    "magicbot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["components"],
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "devices"],
+            "properties": {
+              "name": {"$ref": "#/$defs/name"},
+              "devices": {"type": "array", "items": {"$ref": "#/$defs/name"}}
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "name": {"type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"},
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type", "bus", "can_id"],
+      "properties": {
+        "name": {"$ref": "#/$defs/name"},
+        "type": {"enum": ["talon_fx", "pigeon2"]},
+        "bus": {"$ref": "#/$defs/name"},
+        "can_id": {"type": "integer", "minimum": 0, "maximum": 62},
+        "motor": {"enum": ["falcon_500", "kraken"]},
+        "subsystem": {"$ref": "#/$defs/name"},
+        "inverted": {"type": "boolean"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"type": {"const": "talon_fx"}}, "required": ["type"]},
+          "then": {"required": ["motor"]},
+          "else": {"not": {"anyOf": [{"required": ["motor"]}, {"required": ["inverted"]}]}}
+        }
+      ]
+    }
+  }
+}

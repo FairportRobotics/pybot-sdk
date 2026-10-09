@@ -9,6 +9,7 @@ description = "Development tools for RobotPy robot projects"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "GPL-3.0-or-later"
+dependencies = ["PyYAML>=6.0.2,<7", "jsonschema>=4.25,<5"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -27,4 +28,9 @@ testpaths = ["tests"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-pybot_sdk = ["templates/magicbot/*", "templates/magicbot/tests/*"]
+pybot_sdk = [
+    "hardware/schema/*.json",
+    "templates/magicbot/*",
+    "templates/magicbot/config/*",
+    "templates/magicbot/tests/*",
+]

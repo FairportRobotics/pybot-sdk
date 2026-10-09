@@ -9,6 +9,8 @@ def test_new_creates_runnable_magicbot_project(tmp_path: Path) -> None:
     assert main(["new", str(destination), "--template", "magicbot"]) == 0
     assert (destination / "robot.py").is_file()
     assert (destination / "tests" / "test_drive.py").is_file()
+    assert (destination / "config" / "hardware.yml").is_file()
+    assert main(["hardware", "validate", str(destination / "config" / "hardware.yml")]) == 0
     for generated_file in destination.rglob("*"):
         if generated_file.is_file():
             assert "{{" not in generated_file.read_text(encoding="utf-8")

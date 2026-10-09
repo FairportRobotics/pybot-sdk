@@ -5,6 +5,9 @@ from importlib import resources
 from pathlib import Path
 import sys
 
+from pybot_sdk.hardware.loader import HardwareMapParseError, load_hardware_map
+from pybot_sdk.hardware.validate import validate_hardware_map
+
 
 def _copy_template(source, destination: Path) -> None:
     for item in source.iterdir():
@@ -43,11 +46,40 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
     )
     new.add_argument("--template", choices=("magicbot",), default="magicbot")
+    hardware = commands.add_parser("hardware", help="inspect hardware maps")
+    hardware_commands = hardware.add_subparsers(
+        dest="hardware_command", required=True
+    )
+    validate = hardware_commands.add_parser("validate", help="validate a YAML map")
+    validate.add_argument("path", nargs="?", type=Path, default=Path("config/hardware.yml"))
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command == "hardware":
+        try:
+            document = load_hardware_map(args.path)
+        except HardwareMapParseError as error:
+            print(
+                f"ERROR {error.code} {error.location}: {error.message}",
+                file=sys.stderr,
+            )
+            return 1
+
+        diagnostics = validate_hardware_map(document)
+        for diagnostic in diagnostics:
+            stream = sys.stderr if diagnostic.severity == "error" else sys.stdout
+            print(
+                f"{diagnostic.severity.upper()} {diagnostic.code} "
+                f"{diagnostic.path}: {diagnostic.message}",
+                file=stream,
+            )
+        if any(diagnostic.severity == "error" for diagnostic in diagnostics):
+            return 1
+        print(f"Hardware map is valid: {args.path}")
+        return 0
+
     try:
         create_project(args.project_directory, args.template)
     except (OSError, ValueError) as error:
