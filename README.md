@@ -39,11 +39,13 @@ python -m pip install -e ".[test]"
 python -m pytest
 ruff check .
 ruff format --check .
+python -m build --sdist --wheel
 ```
 
 Ruff formatting can be applied with `ruff format .`. The generated-project
 simulation tests use RobotPy's `--no-isolation` mode because pyfrc's isolated
 worker mode stalls intermittently in the current macOS environment. Its native
-fixtures still reset HAL and NetworkTables between tests.
+fixtures still reset HAL and NetworkTables between tests. CI also installs the
+built wheel in a clean environment and exercises the packaged CLI and template.
 
 The project is licensed under GPL-3.0-or-later. See [LICENSE](LICENSE).
