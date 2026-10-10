@@ -1,34 +1,17 @@
-"""Student robot example using generated identifiers and standard RobotPy APIs."""
-
-import wpilib
-from hardware_map import CONTROLLERS
+"""MagicBot robot template."""
+import constants
+from components import XboxController
 from magicbot import MagicRobot
 
 
-class Drive:
-    """MagicBot component that forwards the driver's left-stick input."""
-
-    controller: wpilib.XboxController
-    motor: wpilib.PWMSparkMax
-
-    def execute(self) -> None:
-        """Apply the current controller input to the simulated motor output."""
-        self.motor.set(self.controller.getLeftY())
-
-    def on_disable(self) -> None:
-        """Stop the motor when MagicBot transitions the robot to disabled."""
-        self.motor.set(0.0)
-
-
 class Robot(MagicRobot):
-    """MagicBot entry point for the starter project."""
+    """MagicBot entry point."""
 
-    drive: Drive
+    controller: XboxController
 
     def createObjects(self) -> None:
         """Construct RobotPy objects before MagicBot injects the component."""
-        self.controller = wpilib.XboxController(CONTROLLERS["driver"]["port"])
-        self.motor = wpilib.PWMSparkMax(0)
+        self.controller = XboxController(port=constants.CONTROLLER_PORT)
 
     def teleopPeriodic(self) -> None:
         """Leave periodic behavior to the injected component's execute method."""
