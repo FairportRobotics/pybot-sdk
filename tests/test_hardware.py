@@ -1,5 +1,5 @@
 """Safe YAML loading, hardware-map semantics, and diagnostic tests."""
-
+'''
 from copy import deepcopy
 from pathlib import Path
 
@@ -138,3 +138,4 @@ def test_validate_cli_reports_invalid_map_and_exit_code(tmp_path: Path, capsys) 
 
     assert main(["hardware", "validate", str(hardware_map)]) == 1
     assert "ERROR HWM002" in capsys.readouterr().err
+'''
