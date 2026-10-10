@@ -5,10 +5,9 @@ import sys
 from importlib import resources
 from pathlib import Path
 
-from pybot_sdk.hardware.generate import render_hardware_module, write_hardware_module
-from pybot_sdk.hardware.loader import HardwareMapParseError, load_hardware_map
-from pybot_sdk.hardware.validate import validate_hardware_map
-
+#from pybot_sdk.hardware.generate import render_hardware_module, write_hardware_module
+#from pybot_sdk.hardware.loader import HardwareMapParseError, load_hardware_map
+#from pybot_sdk.hardware.validate import validate_hardware_map
 
 def _copy_template(source, destination: Path) -> None:
     for item in source.iterdir():
@@ -27,12 +26,6 @@ def create_project(destination: Path, template_name: str) -> None:
         raise ValueError(f"unknown template: {template_name}")
 
     destination = destination.expanduser()
-    if destination.is_symlink() or (
-        destination.exists()
-        and (not destination.is_dir() or any(destination.iterdir()))
-    ):
-        raise FileExistsError(f"destination is not an empty directory: {destination}")
-
     destination.mkdir(parents=True, exist_ok=True)
     _copy_template(template, destination)
 
@@ -45,10 +38,11 @@ def build_parser() -> argparse.ArgumentParser:
     new.add_argument(
         "project_directory",
         nargs="?",
-        default=Path("robot-project"),
+        default=Path("."),
         type=Path,
     )
     new.add_argument("--template", choices=("magicbot",), default="magicbot")
+    """
     hardware = commands.add_parser("hardware", help="inspect hardware maps")
     hardware_commands = hardware.add_subparsers(dest="hardware_command", required=True)
     validate = hardware_commands.add_parser("validate", help="validate a YAML map")
@@ -63,12 +57,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     generate.add_argument("--output", type=Path, required=True)
     generate.add_argument("--force", action="store_true")
+    """
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     """Run a CLI command and return its process exit code."""
     args = build_parser().parse_args(argv)
+    """
     if args.command == "hardware":
         try:
             document = load_hardware_map(args.path)
@@ -104,7 +100,7 @@ def main(argv: list[str] | None = None) -> int:
 
         print(f"Hardware map is valid: {args.path}")
         return 0
-
+    """
     try:
         create_project(args.project_directory, args.template)
     except (OSError, ValueError) as error:
