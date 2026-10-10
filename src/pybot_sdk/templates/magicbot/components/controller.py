@@ -49,7 +49,7 @@ class XboxController:
         """Check if a button is pressed.
 
         :param button_name: The name of the button to check.
-        :param pressed: The current state of the button (True if pressed, False otherwise).
+        :param pressed: The current state of the button (True if pressed, False if not).
         """
         if self.button_is_pressed[button_name] and not pressed:
             self.button_was_pressed[button_name] = True
@@ -60,7 +60,7 @@ class XboxController:
         """Check if a button was pressed since the last check.
         
         :param button_name: The name of the button to check.
-        :return: True if the button was pressed since the last check, False otherwise
+        :return: True if the button was pressed since the last check, False if not
         """
         if self.button_was_pressed[button_name]:
             self.button_was_pressed[button_name] = False
@@ -162,133 +162,133 @@ class XboxController:
     def a_button_pressed(self) -> bool:
         """Check if the A button is pressed.
 
-        :return: True if the A button is pressed, False otherwise
+        :return: True if the A button is pressed, False if not
         """
         return self._button_pressed("A", self.this_controller.getAButton())
 
     def a_button_was_pressed(self) -> bool:
         """Check if the A button was pressed since the last check.
 
-        :return: True if the A button was pressed since the last check, False otherwise
+        :return: True if the A button was pressed since the last check, False if not
         """
         return self._button_was_pressed("A")
 
     def b_button_pressed(self) -> bool:
         """Check if the B button is pressed.
 
-        :return: True if the B button is pressed, False otherwise
+        :return: True if the B button is pressed, False if not
         """
         return self._button_pressed("B", self.this_controller.getBButton())
 
     def b_button_was_pressed(self) -> bool:
         """Check if the B button was pressed since the last check.
 
-        :return: True if the B button was pressed since the last check, False otherwise
+        :return: True if the B button was pressed since the last check, False if not
         """
         return self._button_was_pressed("B")
 
     def x_button_pressed(self) -> bool:
         """Check if the X button is pressed.
 
-        :return: True if the X button is pressed, False otherwise
+        :return: True if the X button is pressed, False if not
         """
         return self._button_pressed("X", self.this_controller.getXButton())
 
     def x_button_was_pressed(self) -> bool:
         """Check if the X button was pressed since the last check.
 
-        :return: True if the X button was pressed since the last check, False otherwise
+        :return: True if the X button was pressed since the last check, False if not
         """
         return self._button_was_pressed("X")
 
     def y_button_pressed(self) -> bool:
         """Check if the Y button is pressed.
 
-        :return: True if the Y button is pressed, False otherwise
+        :return: True if the Y button is pressed, False if not
         """
         return self._button_pressed("Y", self.this_controller.getYButton())
 
     def y_button_was_pressed(self) -> bool:
         """Check if the Y button was pressed since the last check.
 
-        :return: True if the Y button was pressed since the last check, False otherwise
+        :return: True if the Y button was pressed since the last check, False if not
         """
         return self._button_was_pressed("Y")
 
     def dpad_up_pressed(self) -> bool:
         """Check if the D-pad is pressed up.
 
-        :return: True if the D-pad is pressed up, False otherwise
+        :return: True if the D-pad is pressed up, False if not
         """
         return self._button_pressed("DPad_Up", self.this_controller.getPOV() == 0)
 
     def dpad_up_was_pressed(self) -> bool:
         """Check if the D-pad was pressed up since the last check.
 
-        :return: True if the D-pad up was pressed since the last check, False otherwise
+        :return: True if the D-pad up was pressed since the last check, False if not
         """
         return self._button_was_pressed("DPad_Up")
 
     def dpad_down_pressed(self) -> bool:
         """Check if the D-pad is pressed down.
 
-        :return: True if the D-pad is pressed down, False otherwise
+        :return: True if the D-pad is pressed down, False if not
         """
         return self._button_pressed("DPad_Down", self.this_controller.getPOV() == 180)
 
     def dpad_down_was_pressed(self) -> bool:
         """Check if the D-pad was pressed down since the last check.
 
-        :return: True if D-pad down was pressed since the last check, False otherwise
+        :return: True if D-pad down was pressed since the last check, False if not
         """
         return self._button_was_pressed("DPad_Down")
 
     def dpad_left_pressed(self) -> bool:
         """Check if the D-pad is pressed left.
 
-        :return: True if the D-pad is pressed left, False otherwise
+        :return: True if the D-pad is pressed left, False if not
         """
         return self._button_pressed("DPad_Left", self.this_controller.getPOV() == 270)
 
     def dpad_left_was_pressed(self) -> bool:
         """Check if the D-pad was pressed left since the last check.
 
-        :return: True if the D-pad left pressed since the last check, False otherwise
+        :return: True if the D-pad left pressed since the last check, False if not
         """
         return self._button_was_pressed("DPad_Left")
 
     def dpad_right_pressed(self) -> bool:
         """Check if the D-pad is pressed right.
 
-        :return: True if the D-pad is pressed right, False otherwise
+        :return: True if the D-pad is pressed right, False if not
         """
         return self._button_pressed("DPad_Right", self.this_controller.getPOV() == 90)
 
     def dpad_right_was_pressed(self) -> bool:
         """Check if the D-pad was pressed right since the last check.
 
-        :return: True if D-pad right pressed since the last check, False otherwise
+        :return: True if D-pad right pressed since the last check, False if not
         """
         return self._button_was_pressed("DPad_Right")
 
     def left_bumper_pressed(self) -> bool:
         """Check if the left bumper is pressed.
 
-        :return: True if the left bumper is pressed, False otherwise
+        :return: True if the left bumper is pressed, False if not
         """
         return self._button_pressed("Left_Bumper", self.this_controller.getLeftBumper())
 
     def left_bumper_was_pressed(self) -> bool:
         """Check if the left bumper was pressed since the last check.
 
-        :return: True if the left bumper pressed since the last check, False otherwise
+        :return: True if the left bumper pressed since the last check, False if not
         """
         return self._button_was_pressed("Left_Bumper")
 
     def right_bumper_pressed(self) -> bool:
         """Check if the right bumper is pressed.
 
-        :return: True if the right bumper is pressed, False otherwise
+        :return: True if the right bumper is pressed, False if not
         """
         return self._button_pressed(
             "Right_Bumper", self.this_controller.getRightBumper()
@@ -297,7 +297,7 @@ class XboxController:
     def right_bumper_was_pressed(self) -> bool:
         """Check if the right bumper was pressed since the last check.
 
-        :return: True if the right bumper pressed since the last check, False otherwise
+        :return: True if the right bumper pressed since the last check, False if not
         """
         return self._button_was_pressed("Right_Bumper")
 
@@ -314,7 +314,7 @@ class XboxController:
     def left_trigger_was_pressed(self) -> bool:
         """Check if the left trigger was pressed since the last check.
 
-        :return: True if the left trigger pressed since the last check, False otherwise
+        :return: True if the left trigger pressed since the last check, False if not
         """
         return self._button_was_pressed("Left_Trigger")
 
@@ -331,34 +331,34 @@ class XboxController:
     def right_trigger_was_pressed(self) -> bool:
         """Check if the right trigger was pressed since the last check.
 
-        :return: True if the right trigger pressed since the last check, False otherwise
+        :return: True if the right trigger pressed since the last check, False if not
         """
         return self._button_was_pressed("Right_Trigger")
 
     def start_button_pressed(self) -> bool:
         """Check if the start button is pressed.
 
-        :return: True if the start button is pressed, False otherwise
+        :return: True if the start button is pressed, False if not
         """
         return self._button_pressed("Start", self.this_controller.getStartButton())
 
     def start_button_was_pressed(self) -> bool:
         """Check if the start button was pressed since the last check.
 
-        :return: True if the start button pressed since the last check, False otherwise
+        :return: True if the start button pressed since the last check, False if not
         """
         return self._button_was_pressed("Start")
 
     def back_button_pressed(self) -> bool:
         """Check if the back button is pressed.
 
-        :return: True if the back button is pressed, False otherwise
+        :return: True if the back button is pressed, False if not
         """
         return self._button_pressed("Back", self.this_controller.getBackButton())
 
     def back_button_was_pressed(self) -> bool:
         """Check if the back button was pressed since the last check.
 
-        :return: True if the back button pressed since the last check, False otherwise
+        :return: True if the back button pressed since the last check, False if not
         """
         return self._button_was_pressed("Back")
