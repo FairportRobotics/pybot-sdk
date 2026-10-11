@@ -1,1 +1,0 @@
-"""Hardware-map loading and validation."""

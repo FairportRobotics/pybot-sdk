@@ -1,27 +1,11 @@
 robot:
-  name: example_bot
+  name: sparky
 
 devices:
-  - name: drive_left
-    type: talon_fx
-    bus: rio
-    can_id: 1
-    motor: kraken
-    inverted: false
-
-  - name: drive_right
-    type: talon_fx
-    bus: rio
-    can_id: 4
-    motor: kraken
-    inverted: true
 
 magicbot:
   components:
-    - name: drivetrain
-      devices:
-        - drive_left
-        - drive_right
     - name: controller
-        - type: xbox
-        - port: 0
+        template: XboxController
+        parameters:
+        -  port: 0
