@@ -21,7 +21,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def disabledInit(self) -> None:
         """Initialize the disabled mode."""
-        pass
+        commands2.CommandScheduler.getInstance().cancelAll()
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode by scheduling the autonomous command."""
@@ -31,7 +31,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def teleopInit(self) -> None:
         """Leave periodic behavior to the command scheduler."""
-        if self.autonomous_command:
+        if self.autonomous_command is not None:
             self.autonomous_command.cancel()
 
     def testInit(self) -> None:
