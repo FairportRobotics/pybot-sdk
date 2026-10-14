@@ -100,7 +100,26 @@ class MyRobot(magicbot.MagicRobot):
     @magicbot.feedback
     def pose(self):
         return [
-            0.0,  # self.localizer.pose.X,
-            0.0,  # self.localizer.pose.Y,
-            self.drivetrain.angle,
+            self.drivetrain.pose.X(),
+            self.drivetrain.pose.Y(),
+            self.drivetrain.pose.rotation().degrees(),
+        ]
+
+    @magicbot.feedback
+    def servo_position(self):
+        return self.servo.position
+
+    @magicbot.feedback
+    def rangefinder_distance(self):
+        return self.rangefinder.distance
+
+    @magicbot.feedback
+    def rangefinder_units(self):
+        return self.rangefinder.unit
+
+    @magicbot.feedback
+    def line_detected(self):
+        return [
+            self.reflectance_sensor.line_on_left, 
+            self.reflectance_sensor.line_on_right
         ]

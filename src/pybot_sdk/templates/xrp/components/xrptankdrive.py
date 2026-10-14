@@ -3,7 +3,6 @@ import wpilib
 import wpilib.drive
 import wpimath.geometry
 import wpimath.kinematics
-from magicbot import feedback
 
 class XRPTankDrive:
     gyro: xrp.XRPGyro
@@ -13,15 +12,21 @@ class XRPTankDrive:
     right_encoder: wpilib.Encoder
 
     def setup(self) -> None:
-        self.drive = wpilib.drive.DifferentialDrive(self.left_motor, self.right_motor)
-        self.pose = wpimath.geometry.Pose2d(0, 0, wpimath.geometry.Rotation2d(0))
+        self.drive = wpilib.drive.DifferentialDrive(
+            self.left_motor, self.right_motor
+        )
+
+        self.reset_gyro()
+        
         self.reset_encoders()
-        self.angle = self.gyro.getAngle() 
+
         self.odometry = wpimath.kinematics.DifferentialDriveOdometry(
-            wpimath.geometry.Rotation2d(self.angle),
+            wpimath.geometry.Rotation2d.fromDegrees(self.gyro.getAngle()),
             self.left_encoder.getDistance(),
             self.right_encoder.getDistance(),
         )
+
+        self.pose = wpimath.geometry.Pose2d()
         self.throttle = 0.0
         self.rotation = 0.0
 
@@ -44,15 +49,9 @@ class XRPTankDrive:
 
     def update_pose(self) -> None:
         self.pose = self.odometry.update(
-            wpimath.geometry.Rotation2d(self.gyro.getAngle()),
+            wpimath.geometry.Rotation2d.fromDegrees(
+                self.gyro.getAngle()
+            ),
             self.left_encoder.getDistance(),
             self.right_encoder.getDistance(),
         )
-
-    @feedback
-    def pose(self) -> list:
-        return [
-            self.pose.X(),
-            self.pose.Y(),
-            self.pose.rotation().degrees(),
-        ]
