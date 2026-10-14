@@ -1,8 +1,8 @@
 """XRP Rangefinder component."""
 
 import magicbot
-import wpimath.units as units
 import xrp
+from wpimath import units
 
 
 class XRPRangefinder:

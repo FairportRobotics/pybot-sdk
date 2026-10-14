@@ -3,11 +3,12 @@
 
 import os
 
-import components
-import constants
 import magicbot
 import wpilib
 import xrp
+
+import components
+import constants
 
 os.environ["HALSIMXRP_HOST"] = "192.168.42.1"
 os.environ["HALSIMXRP_PORT"] = "3540"
@@ -79,20 +80,31 @@ class MyRobot(magicbot.MagicRobot):
         # Set up the reflectance sensor
         self.reflectance_sensor_sensor = hardware["reflectance_sensor"]
 
-    def autonomousInit(self):
+    def autonomousInit(self) -> None:
         """Initialize autonomous mode."""
         self.led.mode = "on"
 
-    def disabledPeriodic(self):
+    def autonomousPeriodic(self) -> None:
+        """Run during autonomous mode."""
+        self.led.mode = "on"
+
+    def disabledInit(self) -> None:
+        """Initialize disabled mode."""
+        self.led.mode = "off"
+        self.drivetrain.stop()
+        self.drivetrain.reset_encoders()
+        self.drivetrain.reset_gyro()
+
+    def disabledPeriodic(self) -> None:
         """Run during disabled mode."""
         self.led.mode = "off"
         self.drivetrain.stop()
 
-    def teleopInit(self):
+    def teleopInit(self) -> None:
         """Initialize teleop mode."""
         self.led.mode = "blink"
 
-    def teleopPeriodic(self):
+    def teleopPeriodic(self) -> None:
         """Run during teleop mode."""
         # Pass in the speed and let the drivetrain component handle the rest
         self.drivetrain.throttle = -self.controller.left_y
@@ -106,7 +118,7 @@ class MyRobot(magicbot.MagicRobot):
             self.servo.position -= self.servo_change
 
     @magicbot.feedback
-    def pose(self):
+    def legacy_pose(self) -> list[float]:
         """Return the robot's pose as a list of [x, y, rotation]."""
         return [
             self.drivetrain.pose.X(),

@@ -1,7 +1,8 @@
 """Example autonomous mode."""
 
-import components
 import magicbot
+
+import components
 
 
 class DoNothing(magicbot.AutonomousStateMachine):

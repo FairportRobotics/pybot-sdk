@@ -5,6 +5,7 @@ import wpilib.drive
 import wpimath.geometry
 import wpimath.kinematics
 import xrp
+from ntcore import NetworkTableInstance
 
 
 class XRPTankDrive:
@@ -31,7 +32,20 @@ class XRPTankDrive:
             self.right_encoder.getDistance(),
         )
 
+        self.field = wpilib.Field2d()
+        wpilib.SmartDashboard.putData("Field", self.field)
+
         self.pose = wpimath.geometry.Pose2d()
+
+        self.pose_publisher = (
+            NetworkTableInstance.getDefault()
+            .getStructTopic(
+                "robot/pose",
+                wpimath.geometry.Pose2d,
+            )
+            .publish()
+        )
+
         self.throttle = 0.0
         self.rotation = 0.0
 
@@ -64,3 +78,5 @@ class XRPTankDrive:
             self.left_encoder.getDistance(),
             self.right_encoder.getDistance(),
         )
+        self.field.setRobotPose(self.pose)
+        self.pose_publisher.set(self.pose)

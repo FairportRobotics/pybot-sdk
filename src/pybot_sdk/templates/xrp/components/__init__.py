@@ -10,10 +10,10 @@ from .xrptankdrive import XRPTankDrive
 
 # This list is used to determine what is imported when using `from components import *`
 __all__ = [
-    "XRPTankDrive",
-    "XboxController",
     "XRPLed",
     "XRPRangefinder",
     "XRPReflectanceSensor",
     "XRPServo",
+    "XRPTankDrive",
+    "XboxController",
 ]
