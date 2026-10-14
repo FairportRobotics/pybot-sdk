@@ -39,14 +39,14 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
     )
     new.add_argument("--template", choices=("magicbot",), default="magicbot")
-    
+
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     """Run a CLI command and return its process exit code."""
     args = build_parser().parse_args(argv)
-    
+
     try:
         create_project(args.project_directory, args.template)
     except (OSError, ValueError) as error:

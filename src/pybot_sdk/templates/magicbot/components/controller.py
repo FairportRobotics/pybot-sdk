@@ -58,7 +58,7 @@ class XboxController:
 
     def _button_was_pressed(self, button_name: str) -> bool:
         """Check if a button was pressed since the last check.
-        
+
         :param button_name: The name of the button to check.
         :return: True if the button was pressed since the last check, False if not
         """

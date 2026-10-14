@@ -15,5 +15,5 @@ __all__ = [
     "XRPLed",
     "XRPRangefinder",
     "XRPReflectanceSensor",
-    "XRPServo"
+    "XRPServo",
 ]

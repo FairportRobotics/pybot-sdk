@@ -1,10 +1,11 @@
-# XRP MagicBot
+"""XRP MagicBot."""
 # To Run: robotpy sim --xrp
+
+import os
 
 import components
 import constants
 import magicbot
-import os
 import wpilib
 import xrp
 
@@ -13,6 +14,8 @@ os.environ["HALSIMXRP_PORT"] = "3540"
 
 
 class MyRobot(magicbot.MagicRobot):
+    """Define the robot."""
+
     # Magicbot components
     controller: components.XboxController
     drivetrain: components.XRPTankDrive
@@ -21,7 +24,8 @@ class MyRobot(magicbot.MagicRobot):
     rangefinder: components.XRPRangefinder
     reflectance_sensor: components.XRPReflectanceSensor
 
-    def createObjects(self):
+    def createObjects(self) -> None:
+        """Construct RobotPy objects before MagicBot injects the component."""
         # Create the hardware objects
         hardware = {
             "led": xrp.XRPOnBoardIO(),
@@ -76,16 +80,20 @@ class MyRobot(magicbot.MagicRobot):
         self.reflectance_sensor_sensor = hardware["reflectance_sensor"]
 
     def autonomousInit(self):
+        """Initialize autonomous mode."""
         self.led.mode = "on"
 
     def disabledPeriodic(self):
+        """Run during disabled mode."""
         self.led.mode = "off"
         self.drivetrain.stop()
 
     def teleopInit(self):
+        """Initialize teleop mode."""
         self.led.mode = "blink"
 
     def teleopPeriodic(self):
+        """Run during teleop mode."""
         # Pass in the speed and let the drivetrain component handle the rest
         self.drivetrain.throttle = -self.controller.left_y
         self.drivetrain.rotation = -self.controller.right_x
@@ -99,6 +107,7 @@ class MyRobot(magicbot.MagicRobot):
 
     @magicbot.feedback
     def pose(self):
+        """Return the robot's pose as a list of [x, y, rotation]."""
         return [
             self.drivetrain.pose.X(),
             self.drivetrain.pose.Y(),
@@ -106,20 +115,24 @@ class MyRobot(magicbot.MagicRobot):
         ]
 
     @magicbot.feedback
-    def servo_position(self):
+    def servo_position(self) -> float:
+        """Return the servo's position."""
         return self.servo.position
 
     @magicbot.feedback
-    def rangefinder_distance(self):
+    def rangefinder_distance(self) -> float:
+        """Return the rangefinder's distance in the specified unit."""
         return self.rangefinder.distance
 
     @magicbot.feedback
-    def rangefinder_units(self):
+    def rangefinder_units(self) -> str:
+        """Return the rangefinder's distance units."""
         return self.rangefinder.unit
 
     @magicbot.feedback
-    def line_detected(self):
+    def line_detected(self) -> list[bool]:
+        """Return if a line is detected as a list of [left, right]."""
         return [
-            self.reflectance_sensor.line_on_left, 
-            self.reflectance_sensor.line_on_right
+            self.reflectance_sensor.line_on_left,
+            self.reflectance_sensor.line_on_right,
         ]

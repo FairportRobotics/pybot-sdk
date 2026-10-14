@@ -1,4 +1,5 @@
 """MagicBot robot template."""
+
 import constants
 from components import XboxController
 from magicbot import MagicRobot
@@ -7,6 +8,7 @@ from magicbot import MagicRobot
 class Robot(MagicRobot):
     """MagicBot entry point."""
 
+    # Magicbot components
     controller: XboxController
 
     def createObjects(self) -> None:
