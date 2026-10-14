@@ -3,17 +3,17 @@ from xrp import XRPServo
 
 
 class XRPServo:
-    servo: XRPServo
+    the_servo: XRPServo
 
     def setup(self):
-        self._position = self.servo.getPosition()
+        self._position = self.the_servo.getPosition()
 
     def execute(self):
-        self.servo.setPosition(self.position)
+        self.the_servo.setPosition(self.position)
 
     @magicbot.feedback(key="position")
     def get_position(self) -> float:
-        return self.servo.getPosition()
+        return self.the_servo.getPosition()
 
     @property
     def position(self) -> float:

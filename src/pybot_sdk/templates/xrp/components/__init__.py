@@ -6,9 +6,11 @@ from .xrpled import XRPLed
 from .xrprangefinder import XRPRangefinder
 from .xrpreflectancesensor import XRPReflectanceSensor
 from .xrpservo import XRPServo
+from .xrptankdrive import XRPTankDrive
 
 # This list is used to determine what is imported when using `from components import *`
 __all__ = [
+    "XRPTankDrive",
     "XboxController",
     "XRPLed",
     "XRPRangefinder",

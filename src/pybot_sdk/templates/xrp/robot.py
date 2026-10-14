@@ -15,7 +15,7 @@ os.environ["HALSIMXRP_PORT"] = "3540"
 class MyRobot(magicbot.MagicRobot):
     # Magicbot components
     controller: components.XboxController
-    #drivetrain: components.DriveTrain
+    drivetrain: components.XRPTankDrive
     led: components.XRPLed
     servo: components.XRPServo
     rangefinder: components.XRPRangefinder
@@ -62,11 +62,11 @@ class MyRobot(magicbot.MagicRobot):
         self.drivetrain_right_encoder = right_encoder
 
         # Set up the LED
-        self.led_led = hardware["led"]
+        self.led_the_led = hardware["led"]
         self.led_blink_time = constants.LED_BLINK_TIME
 
         # Set up the servo
-        self.servo_servo = hardware["servo"]
+        self.servo_the_servo = hardware["servo"]
         self.servo_change = constants.Robot.SERVO_CHANGE
 
         # Set up the rangefinder
@@ -86,14 +86,9 @@ class MyRobot(magicbot.MagicRobot):
         self.led.mode = "blink"
 
     def teleopPeriodic(self):
-        if self.drivetrain_control_style == "tank":
-            self.drivetrain.drive(
-                left_speed=-self.controller.left_y, right_speed=-self.controller.right_y
-            )
-        else:
-            speed = -self.controller.left_y
-            rotation = -self.controller.right_x
-            self.drivetrain.drive(speed, rotation)
+        # Pass in the speed and let the drivetrain component handle the rest
+        self.drivetrain.throttle = -self.controller.left_y
+        self.drivetrain.rotation = -self.controller.right_x
 
         # Servo control with bumpers
         ## Left bumper raises the servo, right bumper lowers it
