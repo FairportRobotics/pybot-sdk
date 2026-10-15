@@ -1,4 +1,5 @@
 """Command based robot template."""
+
 import commands2
 import constants
 import wpilib

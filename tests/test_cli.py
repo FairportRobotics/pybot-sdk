@@ -23,3 +23,13 @@ def test_new_supports_paths_with_spaces(tmp_path: Path) -> None:
 
     assert main(["new", str(destination)]) == 0
     assert (destination / "robot.py").is_file()
+
+
+def test_new_creates_xrp_project(tmp_path: Path) -> None:
+    """Generate the XRP starter assets."""
+    destination = tmp_path / "xrp_robot"
+
+    assert main(["new", str(destination), "--template", "xrp"]) == 0
+    assert (destination / "robot.py").is_file()
+    assert (destination / "components" / "xrptankdrive.py").is_file()
+    assert (destination / "autonomous" / "do_nothing.py").is_file()

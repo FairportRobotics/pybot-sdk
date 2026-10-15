@@ -3,14 +3,16 @@
 `pybot-sdk` provides development-time tools for RobotPy projects. It does not
 replace RobotPy's project, test, simulation, or deployment commands.
 
-Install the SDK and scaffold the MagicBot starter project:
+Install the SDK and scaffold a starter project:
 
 ```sh
 python -m pip install .
-pybot new robot-project --template magicbot
+pybot new project --template magicbot
+# or
+pybot new project --template xrp
 ```
 
-The starter template targets Python 3.14 and RobotPy 2026. Its RobotPy
+The MagicBot starter template targets Python 3.14 and RobotPy 2026. Its RobotPy
 simulation test is the MVP compatibility proxy for roboRIO operation; physical
 deployment remains unverified until a roboRIO is available.
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pybot-sdk"
-version = "2026.10.10"
+version = "2026.10.14"
 description = "Development tools for RobotPy robot projects"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -41,4 +41,7 @@ pybot_sdk = [
     "templates/magicbot/*",
     "templates/magicbot/.github/workflows/*",
     "templates/magicbot/tests/*",
+    "templates/xrp/*",
+    "templates/xrp/autonomous/*",
+    "templates/xrp/components/*",
 ]

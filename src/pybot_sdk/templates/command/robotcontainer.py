@@ -1,4 +1,5 @@
 """Command based robot template."""
+
 import commands2
 import commands2.button
 import constants
@@ -11,7 +12,7 @@ class RobotContainer:
     def __init__(self) -> None:
         """Initialize the robot subsystems, autonomous command chooser, etc."""
         # Subsystems
-        #self.drivetrain = Drivetrain()
+        # self.drivetrain = Drivetrain()
 
         # Controllers
         self.driver = commands2.button.CommandXboxController(constants.CONTROLLER_PORT)
@@ -26,7 +27,7 @@ class RobotContainer:
     def configure_bindings(self) -> None:
         """Bind the controller buttons to commands."""
         # Example of how to set a default command for a subsystem
-        #self.drivetrain.setDefaultCommand(
+        # self.drivetrain.setDefaultCommand(
         #    ArcadeDrive(
         #        self.drivetrain,
         #        lambda: -self.driver.getLeftY(),
