@@ -32,9 +32,16 @@ jobs:
       - name: Build binary wheel and source tarball
         run: python -m build
 
+      - name: Read package version
+        id: package-version
+        run: |
+          VERSION=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Create GitHub Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.package-version.outputs.version }}
           files: |
             dist/*.whl
             dist/*.tar.gz
