@@ -6,10 +6,11 @@ replace RobotPy's project, test, simulation, or deployment commands.
 Install the SDK and scaffold a starter project:
 
 ```sh
-python -m pip install .
-pybot new project --template magicbot
+python -m pip install git+https://github.com/FairportRobotics/pybot-sdk
+# Create a project in the robot directory
+pybot new robot --template magicbot
 # or
-pybot new project --template xrp
+pybot new robot --template xrp
 ```
 
 The MagicBot starter template targets Python 3.14 and RobotPy 2026. Its RobotPy
