@@ -41,4 +41,7 @@ pybot_sdk = [
     "templates/magicbot/*",
     "templates/magicbot/.github/workflows/*",
     "templates/magicbot/tests/*",
+    "templates/xrp/*",
+    "templates/xrp/autonomous/*",
+    "templates/xrp/components/*",
 ]

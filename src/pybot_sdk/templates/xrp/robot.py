@@ -3,12 +3,11 @@
 
 import os
 
+import components
+import constants
 import magicbot
 import wpilib
 import xrp
-
-import components
-import constants
 
 os.environ["HALSIMXRP_HOST"] = "192.168.42.1"
 os.environ["HALSIMXRP_PORT"] = "3540"
