@@ -3,12 +3,28 @@
 `pybot-sdk` provides development-time tools for RobotPy projects. It does not
 replace RobotPy's project, test, simulation, or deployment commands.
 
-Install the SDK and scaffold a starter project:
+## Install the SDK
+
+To install the wheel attached to the latest GitHub Release (requires the
+[GitHub CLI](https://cli.github.com/)):
 
 ```sh
-python -m pip install git+https://github.com/FairportRobotics/pybot-sdk
+gh release download --repo FairportRobotics/pybot-sdk --pattern '*.whl'
+python -m pip install ./pybot_sdk-*.whl
+```
+
+## Create a starter project
+
+There are three templates that are supported by the SDK.
+
+```sh
+# Show the installed SDK version
+pybot version
+
 # Create a project in the robot directory
 pybot new robot --template magicbot
+# or
+pybot new robot --template command
 # or
 pybot new robot --template xrp
 ```

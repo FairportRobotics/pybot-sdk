@@ -2,7 +2,21 @@
 
 from pathlib import Path
 
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
 from pybot_sdk.cli import main
+
+
+def test_version_prints_project_version(capsys) -> None:
+    """Show the version declared in pyproject.toml."""
+    with (Path(__file__).resolve().parents[1] / "pyproject.toml").open("rb") as file:
+        expected_version = tomllib.load(file)["project"]["version"]
+
+    assert main(["version"]) == 0
+    assert capsys.readouterr().out.strip() == expected_version
 
 
 def test_new_creates_runnable_magicbot_project(tmp_path: Path) -> None:
