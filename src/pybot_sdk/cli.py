@@ -38,7 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("."),
         type=Path,
     )
-    new.add_argument("--template", choices=("magicbot", "xrp"), default="magicbot")
+    new.add_argument("--template", choices=("magicbot", "xrp", "command"), default="magicbot")
 
     return parser
 
@@ -53,6 +53,6 @@ def main(argv: list[str] | None = None) -> int:
         print(f"pybot: {error}", file=sys.stderr)
         return 2
 
-    template_label = {"magicbot": "MagicBot", "xrp": "XRP"}[args.template]
+    template_label = {"magicbot": "MagicBot", "xrp": "XRP", "command": "Command Based Robot"}[args.template]
     print(f"Created {template_label} project at {args.project_directory}")
     return 0
