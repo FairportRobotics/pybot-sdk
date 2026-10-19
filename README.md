@@ -27,11 +27,26 @@ pybot new robot --template magicbot
 pybot new robot --template command
 # or
 pybot new robot --template xrp
+
+# Add components to an existing MagicBot project
+pybot add component gyro
+pybot add component logger
 ```
 
 The MagicBot starter template targets Python 3.14 and RobotPy 2026. Its RobotPy
 simulation test is the MVP compatibility proxy for roboRIO operation; physical
 deployment remains unverified until a roboRIO is available.
+
+Run `pybot add component <name>` from a project directory to copy a component
+template into its `components/` directory. The command reports an error if the
+requested component template is not available.
+
+Set `self.logger_enabled = True` in the robot's `createObjects` method to enable
+the logger component. It writes messages to WPILib's managed data log and
+standard output. To add named values to the data log, call
+`self.logger.log("Drive/Speed", 2.5)`; strings, booleans, integers, and floats
+are supported. A named entry must keep the same value type for the lifetime of
+the logger. See the component documentation for a usage example.
 
 ## Development
 

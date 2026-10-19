@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pybot-sdk"
-version = "2026.10.16"
+version = "2026.10.19"
 description = "Development tools for RobotPy robot projects"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -48,4 +48,5 @@ pybot_sdk = [
     "templates/xrp/*",
     "templates/xrp/autonomous/*",
     "templates/xrp/components/*",
+    "templates/components/*",
 ]
