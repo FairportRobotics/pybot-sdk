@@ -68,13 +68,13 @@ import wpilib
 from magicbot import feedback
 from wpimath.geometry import Rotation2d
 
-
 # ---------------------------------------------------------------------------
 # Shared gyro rules and settings
 #
 # Every gyro must provide the same three readings, even if different brands
 # use different method names or units. GyroSettings holds the choices needed
 # to create a particular sensor.
+
 
 class GyroReader(Protocol):
     """The readings that every gyro type must provide."""
@@ -106,6 +106,7 @@ class GyroSettings:
 #
 # Each reader translates one sensor's readings into the shared GyroReader
 # format. The rest of the robot can then use one set of method names and units.
+
 
 class Pigeon2GyroReader:
     """Read the heading and turn rate from a CTRE Pigeon 2."""
@@ -299,6 +300,7 @@ def available_gyro_types() -> list[str]:
 # MagicBot fills in the settings and calls setup() and execute() for us.
 # This class keeps the current reading and applies a heading offset when reset
 # is called, so the reported direction can start from any angle.
+
 
 class Gyro:
     """Give the robot one consistent way to read its gyro."""

@@ -50,7 +50,7 @@ class Logger:
             self._data_log = wpilib.DataLogManager.getLog()
 
     def execute(self) -> None:
-        """A Magicbot component requires an execute method.  This does nothing."""
+        """Magicbot component requires an execute method.  This does nothing."""
         pass
 
     @overload
