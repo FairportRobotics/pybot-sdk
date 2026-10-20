@@ -1,5 +1,6 @@
 """Scaffold and CLI integration tests."""
 
+import ast
 import sys
 from importlib import resources
 from importlib.util import module_from_spec, spec_from_file_location
@@ -51,6 +52,45 @@ def test_new_creates_xrp_project(tmp_path: Path) -> None:
     assert (destination / "robot.py").is_file()
     assert (destination / "components" / "xrptankdrive.py").is_file()
     assert (destination / "autonomous" / "do_nothing.py").is_file()
+
+
+def test_new_creates_single_file_sysid_project(tmp_path: Path, capsys) -> None:
+    """Generate the single-file TimedRobot SysId template."""
+    destination = tmp_path / "sysid_robot"
+
+    assert main(["new", str(destination), "--template", "sysid"]) == 0
+    assert {path.name for path in destination.iterdir()} == {
+        "README.md",
+        "requirements.txt",
+        "robot.py",
+    }
+
+    robot_source = (destination / "robot.py").read_text()
+    robot_tree = ast.parse(robot_source)
+    robot_class = next(
+        node
+        for node in robot_tree.body
+        if isinstance(node, ast.ClassDef) and node.name == "Robot"
+    )
+    assert any(
+        isinstance(base, ast.Attribute)
+        and isinstance(base.value, ast.Name)
+        and base.value.id == "wpilib"
+        and base.attr == "TimedRobot"
+        for base in robot_class.bases
+    )
+    assert "SequentialCommandGroup" in robot_source
+    assert "quasistatic(direction.kForward)" in robot_source
+    assert "quasistatic(direction.kReverse)" in robot_source
+    assert "dynamic(direction.kForward)" in robot_source
+    assert "dynamic(direction.kReverse)" in robot_source
+    assert 'setDefaultOption("Do Nothing"' in robot_source
+    assert 'addOption("Run SysId"' in robot_source
+    assert "def apply_voltage" in robot_source
+    assert "def log_motor_data" in robot_source
+    assert capsys.readouterr().out == (
+        f"Created a SysId Robot project at {destination}\n"
+    )
 
 
 def test_add_component_copies_template_to_project_components(
