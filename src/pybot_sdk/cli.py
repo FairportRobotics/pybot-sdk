@@ -68,7 +68,9 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
     )
     new.add_argument(
-        "--template", choices=("magicbot", "xrp", "command"), default="magicbot"
+        "--template",
+        choices=("magicbot", "xrp", "command", "sysid"),
+        default="magicbot",
     )
     add = commands.add_parser("add", help="add a component to the current project")
     add_commands = add.add_subparsers(dest="add_command", required=True)
@@ -96,6 +98,7 @@ def main(argv: list[str] | None = None) -> int:
             "magicbot": "MagicBot",
             "xrp": "XRP",
             "command": "Command Based Robot",
+            "sysid": "SysId Robot",
         }
         print(f"Created a {labels[args.template]} project at {args.project_directory}")
         return 0

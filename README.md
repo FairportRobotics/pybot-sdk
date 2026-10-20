@@ -15,7 +15,7 @@ python -m pip install ./pybot_sdk-*.whl
 
 ## Create a starter project
 
-There are three templates that are supported by the SDK.
+There are four templates that are supported by the SDK.
 
 ```sh
 # Show the installed SDK version
@@ -27,6 +27,8 @@ pybot new robot --template magicbot
 pybot new robot --template command
 # or
 pybot new robot --template xrp
+# or
+pybot new robot --template sysid
 
 # Add components to an existing MagicBot project
 pybot add component gyro
@@ -36,6 +38,11 @@ pybot add component logger
 The MagicBot starter template targets Python 3.14 and RobotPy 2026. Its RobotPy
 simulation test is the MVP compatibility proxy for roboRIO operation; physical
 deployment remains unverified until a roboRIO is available.
+
+The SysId template creates a single-file `TimedRobot` project for characterizing
+one configured mechanism with WPILib SysId. Choose "Run SysId" in the
+autonomous chooser to run quasistatic forward and backward, followed by dynamic
+forward and backward. The chooser defaults to "Do Nothing".
 
 Run `pybot add component <name>` from a project directory to copy a component
 template into its `components/` directory. The command reports an error if the
