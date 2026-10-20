@@ -85,6 +85,22 @@ def test_add_logger_component_copies_template_to_project_components(
     assert capsys.readouterr().out == "Added component logger to components/\n"
 
 
+def test_add_tankdrive_component_copies_template_to_project_components(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    """Copy the Tankdrive component template into the project."""
+    project = tmp_path / "robot_project"
+    components = project / "components"
+    components.mkdir(parents=True)
+    monkeypatch.chdir(project)
+
+    assert main(["add", "component", "tankdrive"]) == 0
+    assert (components / "tankdrive.py").read_bytes() == resources.files(
+        "pybot_sdk"
+    ).joinpath("templates", "components", "tankdrive.py").read_bytes()
+    assert capsys.readouterr().out == "Added component tankdrive to components/\n"
+
+
 def _load_logger_module(
     monkeypatch, data_log_manager: SimpleNamespace, entry_calls: list | None = None
 ):

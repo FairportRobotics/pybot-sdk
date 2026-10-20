@@ -31,6 +31,7 @@ pybot new robot --template xrp
 # Add components to an existing MagicBot project
 pybot add component gyro
 pybot add component logger
+pybot add component tankdrive
 ```
 
 The MagicBot starter template targets Python 3.14 and RobotPy 2026. Its RobotPy
