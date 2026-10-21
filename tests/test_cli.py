@@ -29,6 +29,7 @@ def test_list_components_prints_addable_components(capsys) -> None:
     assert main(["list", "components"]) == 0
     assert capsys.readouterr().out.splitlines() == [
         "gyro",
+        "ledstrip",
         "logger",
         "tankdrive",
         "xboxcontroller",
