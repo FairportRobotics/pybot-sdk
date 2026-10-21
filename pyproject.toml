@@ -49,5 +49,5 @@ pybot_sdk = [
     "templates/xrp/autonomous/*",
     "templates/xrp/components/*",
     "templates/sysid/*",
-    "templates/components/*",
+    "components/*.py",
 ]

@@ -24,6 +24,28 @@ def test_version_prints_project_version(capsys) -> None:
     assert capsys.readouterr().out.strip() == expected_version
 
 
+def test_list_components_prints_addable_components(capsys) -> None:
+    """List every packaged component template that can be added."""
+    assert main(["list", "components"]) == 0
+    assert capsys.readouterr().out.splitlines() == [
+        "gyro",
+        "logger",
+        "tankdrive",
+        "xboxcontroller",
+    ]
+
+
+def test_list_templates_prints_supported_templates(capsys) -> None:
+    """List every project template accepted by the new command."""
+    assert main(["list", "templates"]) == 0
+    assert capsys.readouterr().out.splitlines() == [
+        "command",
+        "magicbot",
+        "sysid",
+        "xrp",
+    ]
+
+
 def test_new_creates_runnable_magicbot_project(tmp_path: Path) -> None:
     """Generate all starter assets and exercise map validation and generation."""
     destination = tmp_path / "robot_project"
@@ -105,7 +127,7 @@ def test_add_component_copies_template_to_project_components(
     assert main(["add", "component", "gyro"]) == 0
     assert (components / "gyro.py").read_bytes() == resources.files(
         "pybot_sdk"
-    ).joinpath("templates", "components", "gyro.py").read_bytes()
+    ).joinpath("components", "gyro.py").read_bytes()
     assert capsys.readouterr().out == "Added component gyro to components/\n"
 
 
@@ -121,7 +143,7 @@ def test_add_logger_component_copies_template_to_project_components(
     assert main(["add", "component", "logger"]) == 0
     assert (components / "logger.py").read_bytes() == resources.files(
         "pybot_sdk"
-    ).joinpath("templates", "components", "logger.py").read_bytes()
+    ).joinpath("components", "logger.py").read_bytes()
     assert capsys.readouterr().out == "Added component logger to components/\n"
 
 
@@ -137,7 +159,7 @@ def test_add_tankdrive_component_copies_template_to_project_components(
     assert main(["add", "component", "tankdrive"]) == 0
     assert (components / "tankdrive.py").read_bytes() == resources.files(
         "pybot_sdk"
-    ).joinpath("templates", "components", "tankdrive.py").read_bytes()
+    ).joinpath("components", "tankdrive.py").read_bytes()
     assert capsys.readouterr().out == "Added component tankdrive to components/\n"
 
 
@@ -175,7 +197,6 @@ def _load_logger_module(
         Path(__file__).resolve().parents[1]
         / "src"
         / "pybot_sdk"
-        / "templates"
         / "components"
         / "logger.py"
     )

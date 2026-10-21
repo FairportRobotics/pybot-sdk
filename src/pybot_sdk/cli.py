@@ -11,6 +11,8 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
+TEMPLATE_NAMES = ("magicbot", "xrp", "command", "sysid")
+
 
 def _copy_template(source, destination: Path) -> None:
     for item in source.iterdir():
@@ -47,7 +49,7 @@ def add_component(component_name: str, destination: Path) -> None:
         raise ValueError(f"unknown component: {component_name}")
 
     template = resources.files("pybot_sdk").joinpath(
-        "templates", "components", f"{component_name}.py"
+        "components", f"{component_name}.py"
     )
     if not template.is_file():
         raise ValueError(f"unknown component: {component_name}")
@@ -69,7 +71,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     new.add_argument(
         "--template",
-        choices=("magicbot", "xrp", "command", "sysid"),
+        choices=TEMPLATE_NAMES,
         default="magicbot",
     )
     add = commands.add_parser("add", help="add a component to the current project")
@@ -77,7 +79,23 @@ def build_parser() -> argparse.ArgumentParser:
     component = add_commands.add_parser("component", help="add a MagicBot component")
     component.add_argument("component_name")
 
+    list_parser = commands.add_parser(
+        "list", help="list available components or templates"
+    )
+    list_commands = list_parser.add_subparsers(dest="list_command", required=True)
+    list_commands.add_parser("components", help="list addable components")
+    list_commands.add_parser("templates", help="list project templates")
+
     return parser
+
+
+def _list_components() -> list[str]:
+    component_directory = resources.files("pybot_sdk").joinpath("components")
+    return sorted(
+        item.name.removesuffix(".py")
+        for item in component_directory.iterdir()
+        if item.is_file() and item.name.endswith(".py")
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -110,4 +128,12 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
         print(f"Added component {args.component_name} to components/")
+        return 0
+    elif args.command == "list":
+        names = (
+            _list_components()
+            if args.list_command == "components"
+            else sorted(TEMPLATE_NAMES)
+        )
+        print("\n".join(names))
         return 0
