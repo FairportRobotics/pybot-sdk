@@ -21,6 +21,10 @@ There are four templates that are supported by the SDK.
 # Show the installed SDK version
 pybot version
 
+# List available project templates and addable components
+pybot list templates
+pybot list components
+
 # Create a project in the robot directory
 pybot new robot --template magicbot
 # or
@@ -32,6 +36,7 @@ pybot new robot --template sysid
 
 # Add components to an existing MagicBot project
 pybot add component gyro
+pybot add component limelight
 pybot add component logger
 pybot add component tankdrive
 ```
@@ -46,8 +51,8 @@ autonomous chooser to run quasistatic forward and backward, followed by dynamic
 forward and backward. The chooser defaults to "Do Nothing".
 
 Run `pybot add component <name>` from a project directory to copy a component
-template into its `components/` directory. The command reports an error if the
-requested component template is not available.
+template from `src/pybot_sdk/components/` into its `components/` directory. The
+command reports an error if the requested component template is not available.
 
 Set `self.logger_enabled = True` in the robot's `createObjects` method to enable
 the logger component. It writes messages to WPILib's managed data log and
