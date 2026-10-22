@@ -36,6 +36,7 @@ pybot new robot --template sysid
 
 # Add components to an existing MagicBot project
 pybot add component gyro
+pybot add component limelight
 pybot add component logger
 pybot add component tankdrive
 ```
