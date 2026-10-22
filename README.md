@@ -13,6 +13,12 @@ gh release download --repo FairportRobotics/pybot-sdk --pattern '*.whl'
 python -m pip install ./pybot_sdk-*.whl
 ```
 
+After installing, update the SDK to the latest GitHub Release with:
+
+```sh
+pybot update
+```
+
 ## Create a starter project
 
 There are four templates that are supported by the SDK.
