@@ -13,6 +13,12 @@ gh release download --repo FairportRobotics/pybot-sdk --pattern '*.whl'
 python -m pip install ./pybot_sdk-*.whl
 ```
 
+After installing, update the SDK to the latest GitHub Release with:
+
+```sh
+pybot update
+```
+
 ## Create a starter project
 
 There are four templates that are supported by the SDK.
@@ -72,6 +78,11 @@ ruff check .
 ruff format --check .
 python -m build --sdist --wheel
 ```
+
+The GitHub Actions workflow updates `pyproject.toml`'s project version to
+`YYYY.MM.DD` each day (UTC), commits the change when needed, and dispatches the
+release build for the new version. It can also be run manually from the Actions
+tab.
 
 Ruff formatting can be applied with `ruff format .`. The generated-project
 simulation tests use RobotPy's `--no-isolation` mode because pyfrc's isolated

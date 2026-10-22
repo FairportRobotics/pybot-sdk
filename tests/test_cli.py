@@ -1,6 +1,8 @@
 """Scaffold and CLI integration tests."""
 
 import ast
+import io
+import json
 import sys
 from importlib import resources
 from importlib.util import module_from_spec, spec_from_file_location
@@ -12,6 +14,7 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
+from pybot_sdk import cli
 from pybot_sdk.cli import main
 
 
@@ -22,6 +25,85 @@ def test_version_prints_project_version(capsys) -> None:
 
     assert main(["version"]) == 0
     assert capsys.readouterr().out.strip() == expected_version
+
+
+def test_update_installs_wheel_from_latest_release(monkeypatch, capsys) -> None:
+    """Download the release wheel and install it into the active interpreter."""
+    responses = iter(
+        [
+            io.BytesIO(
+                json.dumps(
+                    {
+                        "tag_name": "2026.10.21",
+                        "assets": [
+                            {
+                                "name": "pybot_sdk-2026.10.21-py3-none-any.whl",
+                                "browser_download_url": (
+                                    "https://github.com/FairportRobotics/pybot-sdk/"
+                                    "releases/download/2026.10.21/"
+                                    "pybot_sdk-2026.10.21-py3-none-any.whl"
+                                ),
+                            }
+                        ],
+                    }
+                ).encode()
+            ),
+            io.BytesIO(b"wheel contents"),
+        ]
+    )
+    requested_urls = []
+    install_commands = []
+
+    def open_url(url, timeout):
+        assert timeout in (30, 60)
+        requested_urls.append(url.full_url)
+        return next(responses)
+
+    def run_install(command, check):
+        assert check is False
+        install_commands.append(command)
+        wheel_path = Path(command[-1])
+        assert wheel_path.read_bytes() == b"wheel contents"
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(cli.request, "urlopen", open_url)
+    monkeypatch.setattr(cli.subprocess, "run", run_install)
+
+    assert main(["update"]) == 0
+
+    assert requested_urls == [
+        cli.LATEST_RELEASE_URL,
+        "https://github.com/FairportRobotics/pybot-sdk/releases/download/"
+        "2026.10.21/pybot_sdk-2026.10.21-py3-none-any.whl",
+    ]
+    assert install_commands[0][:6] == [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--no-deps",
+        "--upgrade",
+    ]
+    assert install_commands[0][6:8] == ["--force-reinstall", install_commands[0][-1]]
+    assert capsys.readouterr().out == "Updated pybot-sdk to 2026.10.21.\n"
+    assert not Path(install_commands[0][-1]).exists()
+
+
+def test_update_reports_release_without_wheel(monkeypatch, capsys) -> None:
+    """Report a useful error when the latest release has no wheel asset."""
+    response = io.BytesIO(json.dumps({"tag_name": "2026.10.21", "assets": []}).encode())
+
+    def open_url(url, timeout):
+        assert url.full_url == cli.LATEST_RELEASE_URL
+        assert timeout == 30
+        return response
+
+    monkeypatch.setattr(cli.request, "urlopen", open_url)
+
+    assert main(["update"]) == 2
+    assert "latest GitHub release does not include a pybot-sdk wheel" in (
+        capsys.readouterr().err
+    )
 
 
 def test_list_components_prints_addable_components(capsys) -> None:
