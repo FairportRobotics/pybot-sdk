@@ -79,6 +79,11 @@ ruff format --check .
 python -m build --sdist --wheel
 ```
 
+The GitHub Actions workflow updates `pyproject.toml`'s project version to
+`YYYY.MM.DD` each day (UTC), commits the change when needed, and dispatches the
+release build for the new version. It can also be run manually from the Actions
+tab.
+
 Ruff formatting can be applied with `ruff format .`. The generated-project
 simulation tests use RobotPy's `--no-isolation` mode because pyfrc's isolated
 worker mode stalls intermittently in the current macOS environment. Its native

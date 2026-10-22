@@ -1,0 +1,48 @@
+name: Update Date-Based Version
+
+on:
+  schedule:
+    - cron: "17 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Update project version
+        run: python scripts/update_version.py
+
+      - name: Commit version update
+        id: commit-version
+        run: |
+          if git diff --quiet -- pyproject.toml; then
+            echo "Project version is already current."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          VERSION=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml
+          git commit -m "chore: update project version to $VERSION"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Build and release updated version
+        if: steps.commit-version.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run build-and-release-wheel.yml --ref main
