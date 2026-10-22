@@ -32,6 +32,7 @@ def test_list_components_prints_addable_components(capsys) -> None:
         "ledstrip",
         "limelight",
         "logger",
+        "orchestra",
         "tankdrive",
         "xboxcontroller",
     ]
@@ -179,6 +180,22 @@ def test_add_limelight_component_copies_template_to_project_components(
         "pybot_sdk"
     ).joinpath("components", "limelight.py").read_bytes()
     assert capsys.readouterr().out == "Added component limelight to components/\n"
+
+
+def test_add_orchestra_component_copies_template_to_project_components(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    """Copy the Orchestra component template into the project's components."""
+    project = tmp_path / "robot_project"
+    components = project / "components"
+    components.mkdir(parents=True)
+    monkeypatch.chdir(project)
+
+    assert main(["add", "component", "orchestra"]) == 0
+    assert (components / "orchestra.py").read_bytes() == resources.files(
+        "pybot_sdk"
+    ).joinpath("components", "orchestra.py").read_bytes()
+    assert capsys.readouterr().out == "Added component orchestra to components/\n"
 
 
 def _load_logger_module(
