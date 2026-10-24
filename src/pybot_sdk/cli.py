@@ -156,13 +156,8 @@ def build_parser() -> argparse.ArgumentParser:
     commands.add_parser("update", help="install the latest pybot-sdk release")
     new = commands.add_parser("new", help="create a RobotPy project")
     new.add_argument(
-        "project_directory",
+        "template",
         nargs="?",
-        default=Path("."),
-        type=Path,
-    )
-    new.add_argument(
-        "--template",
         choices=TEMPLATE_NAMES,
         default="magicbot",
     )
@@ -200,8 +195,9 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "update":
         return update_sdk()
     elif args.command == "new":
+        destination = Path.cwd()
         try:
-            create_project(args.project_directory, args.template)
+            create_project(destination, args.template)
         except (OSError, ValueError) as error:
             print(f"pybot: {error}", file=sys.stderr)
             return 2
@@ -212,7 +208,7 @@ def main(argv: list[str] | None = None) -> int:
             "command": "Command Based Robot",
             "sysid": "SysId Robot",
         }
-        print(f"Created a {labels[args.template]} project at {args.project_directory}")
+        print(f"Created a {labels[args.template]} project at {destination}")
         return 0
     elif args.command == "add" and args.add_command == "component":
         try:

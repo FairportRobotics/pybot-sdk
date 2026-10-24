@@ -31,14 +31,18 @@ pybot version
 pybot list templates
 pybot list components
 
-# Create a project in the robot directory
-pybot new robot --template magicbot
+# Change to the directory where you want the project
+mkdir robot
+cd robot
+
+# Create a project in the current directory
+pybot new magicbot
 # or
-pybot new robot --template command
+pybot new command
 # or
-pybot new robot --template xrp
+pybot new xrp
 # or
-pybot new robot --template sysid
+pybot new sysid
 
 # Add components to an existing MagicBot project
 pybot add component gyro
@@ -46,6 +50,9 @@ pybot add component limelight
 pybot add component logger
 pybot add component tankdrive
 ```
+
+Running `pybot new` without a template creates a MagicBot project in the current
+directory.
 
 The MagicBot starter template targets Python 3.14 and RobotPy 2026. Its RobotPy
 simulation test is the MVP compatibility proxy for roboRIO operation; physical
