@@ -1,15 +1,14 @@
 name: Build and Release Wheel Package
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch: # Allows you to manually trigger the build from the GitHub UI
+    types: [ closed ]
 
 jobs:
   build-and-release:
     name: Build Wheel and Upload to GitHub Release
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     
     permissions:
