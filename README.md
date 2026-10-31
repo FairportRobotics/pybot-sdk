@@ -54,6 +54,12 @@ pybot add component tankdrive
 Running `pybot new` without a template creates a MagicBot project in the current
 directory.
 
+The XRP tank-drive component's `target_heading` defaults to `None`, which
+leaves manual rotation control unchanged. Set it to a heading from 0 to 360
+degrees to use PID control to turn along the shortest direction; set it back to
+`None` to resume manual rotation control. Configure the heading controller's
+`(P, I, D)` gains in `constants.Robot.HEADING_PID`.
+
 The MagicBot starter template targets Python 3.14 and RobotPy 2026. Its RobotPy
 simulation test is the MVP compatibility proxy for roboRIO operation; physical
 deployment remains unverified until a roboRIO is available.
