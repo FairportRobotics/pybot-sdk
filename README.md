@@ -46,6 +46,7 @@ pybot new sysid
 
 # Add components to an existing MagicBot project
 pybot add component gyro
+pybot add component jukebox
 pybot add component limelight
 pybot add component logger
 pybot add component tankdrive
