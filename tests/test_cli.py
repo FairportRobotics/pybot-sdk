@@ -115,6 +115,8 @@ def test_list_components_prints_addable_components(capsys) -> None:
         "limelight",
         "logger",
         "orchestra",
+        "swervedrive",
+        "swervemodule",
         "tankdrive",
         "xboxcontroller",
     ]
@@ -253,6 +255,43 @@ def test_add_tankdrive_component_copies_template_to_project_components(
         "pybot_sdk"
     ).joinpath("components", "tankdrive.py").read_bytes()
     assert capsys.readouterr().out == "Added component tankdrive to components/\n"
+
+
+def test_add_swervedrive_copies_its_components_and_gyro(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    """Copy the drive, module, and required gyro into a new MagicBot project."""
+    project = tmp_path / "robot_project"
+    components = project / "components"
+    components.mkdir(parents=True)
+    monkeypatch.chdir(project)
+
+    assert main(["add", "component", "swervedrive"]) == 0
+    for name in ("swervedrive", "swervemodule", "gyro"):
+        assert (components / f"{name}.py").read_bytes() == resources.files(
+            "pybot_sdk"
+        ).joinpath("components", f"{name}.py").read_bytes()
+    assert capsys.readouterr().out == (
+        "Added SwerveDrive components: swervedrive.py, swervemodule.py, "
+        "and gyro.py if not already present\n"
+    )
+
+
+def test_add_swervedrive_keeps_an_existing_gyro_component(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Do not overwrite a project's already configured gyro component."""
+    project = tmp_path / "robot_project"
+    components = project / "components"
+    components.mkdir(parents=True)
+    gyro = components / "gyro.py"
+    gyro.write_text("# existing team gyro\n")
+    monkeypatch.chdir(project)
+
+    assert main(["add", "component", "swervedrive"]) == 0
+    assert gyro.read_text() == "# existing team gyro\n"
+    assert (components / "swervemodule.py").is_file()
+    assert (components / "swervedrive.py").is_file()
 
 
 def test_add_limelight_component_copies_template_to_project_components(
