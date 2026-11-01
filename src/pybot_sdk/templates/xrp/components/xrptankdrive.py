@@ -2,6 +2,7 @@
 
 import wpilib
 import wpilib.drive
+import wpimath.controller
 import wpimath.geometry
 import wpimath.kinematics
 import xrp
@@ -12,6 +13,7 @@ class XRPTankDrive:
     """Tank drive component for the XRP robot."""
 
     # Injected variables
+    heading_pid: tuple[float, float, float]
     gyro: xrp.XRPGyro
     left_motor: xrp.XRPMotor
     right_motor: xrp.XRPMotor
@@ -20,7 +22,10 @@ class XRPTankDrive:
 
     def setup(self) -> None:
         """Set up the tank drive component."""
+        self.target_heading: float | None = None
         self.drive = wpilib.drive.DifferentialDrive(self.left_motor, self.right_motor)
+        self.heading_controller = wpimath.controller.PIDController(*self.heading_pid)
+        self.heading_controller.enableContinuousInput(0.0, 360.0)
 
         self.reset_gyro()
 
@@ -51,7 +56,13 @@ class XRPTankDrive:
 
     def execute(self) -> None:
         """Run the component's periodic behavior."""
-        self.go(self.throttle, self.rotation)
+        rotation = self.rotation
+        if self.target_heading is not None:
+            rotation = self.heading_controller.calculate(
+                self.gyro.getAngle(), self.target_heading
+            )
+
+        self.go(self.throttle, rotation)
         self.update_pose()
 
     def go(self, throttle: float, rotation: float, square_inputs: bool = True) -> None:

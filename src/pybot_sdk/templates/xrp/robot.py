@@ -60,6 +60,7 @@ class MyRobot(magicbot.MagicRobot):
         ## Inject objects and parameters
         self.drivetrain_gyro = xrp.XRPGyro()
         self.drivetrain_gyro_noise_threshold = constants.Robot.GYRO_NOISE_THRESHOLD
+        self.drivetrain_heading_pid = constants.Robot.HEADING_PID
         self.drivetrain_left_motor = left_motor
         self.drivetrain_right_motor = right_motor
         self.drivetrain_left_encoder = left_encoder
