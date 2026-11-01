@@ -50,10 +50,18 @@ pybot add component jukebox
 pybot add component limelight
 pybot add component logger
 pybot add component tankdrive
+pybot add component swervedrive
 ```
 
 Running `pybot new` without a template creates a MagicBot project in the current
 directory.
+
+Adding `swervedrive` also copies the required `SwerveModule` component and the
+SDK `Gyro` component if `components/gyro.py` is not already present. See the
+[SwerveDrive implementation and usage example](src/pybot_sdk/components/swervedrive.py)
+and [SwerveModule documentation](src/pybot_sdk/components/swervemodule.py).
+Each module uses separate steering-angle and drive-speed PID loops; tune their
+gains for the actual robot before enabling motor output.
 
 The XRP tank-drive component's `target_heading` defaults to `None`, which
 leaves manual rotation control unchanged. Set it to a heading from 0 to 360
