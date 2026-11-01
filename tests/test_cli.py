@@ -111,10 +111,12 @@ def test_list_components_prints_addable_components(capsys) -> None:
     assert main(["list", "components"]) == 0
     assert capsys.readouterr().out.splitlines() == [
         "gyro",
+        "jukebox",
         "ledstrip",
         "limelight",
         "logger",
-        "orchestra",
+        "swervedrive",
+        "swervemodule",
         "tankdrive",
         "xboxcontroller",
     ]
@@ -255,6 +257,43 @@ def test_add_tankdrive_component_copies_template_to_project_components(
     assert capsys.readouterr().out == "Added component tankdrive to components/\n"
 
 
+def test_add_swervedrive_copies_its_components_and_gyro(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    """Copy the drive, module, and required gyro into a new MagicBot project."""
+    project = tmp_path / "robot_project"
+    components = project / "components"
+    components.mkdir(parents=True)
+    monkeypatch.chdir(project)
+
+    assert main(["add", "component", "swervedrive"]) == 0
+    for name in ("swervedrive", "swervemodule", "gyro"):
+        assert (components / f"{name}.py").read_bytes() == resources.files(
+            "pybot_sdk"
+        ).joinpath("components", f"{name}.py").read_bytes()
+    assert capsys.readouterr().out == (
+        "Added SwerveDrive components: swervedrive.py, swervemodule.py, "
+        "and gyro.py if not already present\n"
+    )
+
+
+def test_add_swervedrive_keeps_an_existing_gyro_component(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Do not overwrite a project's already configured gyro component."""
+    project = tmp_path / "robot_project"
+    components = project / "components"
+    components.mkdir(parents=True)
+    gyro = components / "gyro.py"
+    gyro.write_text("# existing team gyro\n")
+    monkeypatch.chdir(project)
+
+    assert main(["add", "component", "swervedrive"]) == 0
+    assert gyro.read_text() == "# existing team gyro\n"
+    assert (components / "swervemodule.py").is_file()
+    assert (components / "swervedrive.py").is_file()
+
+
 def test_add_limelight_component_copies_template_to_project_components(
     tmp_path: Path, monkeypatch, capsys
 ) -> None:
@@ -271,20 +310,20 @@ def test_add_limelight_component_copies_template_to_project_components(
     assert capsys.readouterr().out == "Added component limelight to components/\n"
 
 
-def test_add_orchestra_component_copies_template_to_project_components(
+def test_add_jukebox_component_copies_template_to_project_components(
     tmp_path: Path, monkeypatch, capsys
 ) -> None:
-    """Copy the Orchestra component template into the project's components."""
+    """Copy the jukebox component template into the project's components."""
     project = tmp_path / "robot_project"
     components = project / "components"
     components.mkdir(parents=True)
     monkeypatch.chdir(project)
 
-    assert main(["add", "component", "orchestra"]) == 0
-    assert (components / "orchestra.py").read_bytes() == resources.files(
+    assert main(["add", "component", "jukebox"]) == 0
+    assert (components / "jukebox.py").read_bytes() == resources.files(
         "pybot_sdk"
-    ).joinpath("components", "orchestra.py").read_bytes()
-    assert capsys.readouterr().out == "Added component orchestra to components/\n"
+    ).joinpath("components", "jukebox.py").read_bytes()
+    assert capsys.readouterr().out == "Added component jukebox to components/\n"
 
 
 def _load_logger_module(

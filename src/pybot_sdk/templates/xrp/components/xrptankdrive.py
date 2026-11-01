@@ -25,7 +25,11 @@ class XRPTankDrive:
         self.target_heading: float | None = None
         self.drive = wpilib.drive.DifferentialDrive(self.left_motor, self.right_motor)
         self.heading_controller = wpimath.controller.PIDController(*self.heading_pid)
-        self.heading_controller.enableContinuousInput(0.0, 360.0)
+        self.heading_min = 0.0
+        self.heading_max = 360.0
+        self.heading_controller.enableContinuousInput(
+            self.heading_min, self.heading_max
+        )
 
         self.reset_gyro()
 
@@ -58,6 +62,10 @@ class XRPTankDrive:
         """Run the component's periodic behavior."""
         rotation = self.rotation
         if self.target_heading is not None:
+            if not self.heading_min <= self.target_heading <= self.heading_max:
+                raise ValueError(
+                    f"target_heading outside {self.heading_min}-{self.heading_max}"
+                )
             rotation = self.heading_controller.calculate(
                 self.gyro.getAngle(), self.target_heading
             )

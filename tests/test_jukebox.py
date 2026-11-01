@@ -1,4 +1,4 @@
-"""Tests for the packaged CTRE Orchestra MagicBot component."""
+"""Tests for the packaged CTRE Orchestra-based MagicBot jukebox component."""
 
 import sys
 from importlib.util import module_from_spec, spec_from_file_location
@@ -8,7 +8,7 @@ from types import ModuleType, SimpleNamespace
 import pytest
 
 
-def _load_orchestra_module(monkeypatch, calls: list[tuple]):
+def _load_jukebox_module(monkeypatch, calls: list[tuple]):
     """Load the component with a small stand-in for Phoenix 6."""
 
     class FakeStatus:
@@ -59,31 +59,31 @@ def _load_orchestra_module(monkeypatch, calls: list[tuple]):
         / "src"
         / "pybot_sdk"
         / "components"
-        / "orchestra.py"
+        / "jukebox.py"
     )
-    spec = spec_from_file_location("orchestra_template", component_path)
+    spec = spec_from_file_location("jukebox_template", component_path)
     assert spec is not None
     assert spec.loader is not None
     module = module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.Orchestra
+    return module.Jukebox
 
 
-def test_orchestra_loads_song_and_controls_motor(monkeypatch) -> None:
+def test_jukebox_loads_song_and_controls_motor(monkeypatch) -> None:
     """Load a song onto the configured motor and expose playback controls."""
     calls: list[tuple] = []
-    Orchestra = _load_orchestra_module(monkeypatch, calls)
+    Jukebox = _load_jukebox_module(monkeypatch, calls)
     motor = object()
-    orchestra = Orchestra()
-    orchestra.motor = motor
-    orchestra.music_file = "school_song.chrp"
+    jukebox = Jukebox()
+    jukebox.motor = motor
+    jukebox.music_file = "school_song.chrp"
 
-    orchestra.setup()
-    orchestra.play()
-    orchestra.pause()
-    orchestra.stop()
+    jukebox.setup()
+    jukebox.play()
+    jukebox.pause()
+    jukebox.stop()
 
-    assert orchestra.is_playing() is True
+    assert jukebox.is_playing() is True
     assert calls == [
         ("add_instrument", motor),
         ("load_music", "school_song.chrp"),
@@ -94,25 +94,25 @@ def test_orchestra_loads_song_and_controls_motor(monkeypatch) -> None:
     ]
 
 
-def test_orchestra_rejects_an_empty_song_path(monkeypatch) -> None:
+def test_jukebox_rejects_an_empty_song_path(monkeypatch) -> None:
     """Explain that MagicBot needs a music file to load."""
     calls: list[tuple] = []
-    Orchestra = _load_orchestra_module(monkeypatch, calls)
-    orchestra = Orchestra()
-    orchestra.motor = object()
-    orchestra.music_file = " "
+    Jukebox = _load_jukebox_module(monkeypatch, calls)
+    jukebox = Jukebox()
+    jukebox.motor = object()
+    jukebox.music_file = " "
 
-    with pytest.raises(ValueError, match="orchestra_music_file"):
-        orchestra.setup()
+    with pytest.raises(ValueError, match="jukebox_music_file"):
+        jukebox.setup()
 
     assert calls == []
 
 
-def test_orchestra_reports_phoenix_status_errors(monkeypatch) -> None:
+def test_jukebox_reports_phoenix_status_errors(monkeypatch) -> None:
     """Do not silently ignore a failed Phoenix Orchestra action."""
     calls: list[tuple] = []
-    Orchestra = _load_orchestra_module(monkeypatch, calls)
-    orchestra = Orchestra()
+    Jukebox = _load_jukebox_module(monkeypatch, calls)
+    jukebox = Jukebox()
 
     class FailedStatus:
         def is_ok(self) -> bool:
@@ -122,4 +122,4 @@ def test_orchestra_reports_phoenix_status_errors(monkeypatch) -> None:
             return "fake error"
 
     with pytest.raises(RuntimeError, match="fake error"):
-        orchestra._check_status(FailedStatus(), "load the song")
+        jukebox._check_status(FailedStatus(), "load the song")
