@@ -9,18 +9,18 @@ In a RobotPy MagicBot project, create a Talon FX and choose the song in
 ``createObjects``::
 
     import phoenix6
-    from components.orchestra import Orchestra
+    from components.jukebox import Jukebox
     from magicbot import MagicRobot
 
     class Robot(MagicRobot):
-        orchestra: Orchestra
+        jukebox: Jukebox
 
         def createObjects(self):
-            self.orchestra_motor = phoenix6.hardware.TalonFX(1)
-            self.orchestra_music_file = "school_song.chrp"
+            self.jukebox_motor = phoenix6.hardware.TalonFX(1)
+            self.jukebox_music_file = "school_song.chrp"
 
         def teleopInit(self):
-            self.orchestra.play()
+            self.jukebox.play()
 
 Call ``play()`` to start or resume the song, ``pause()`` to pause it, and
 ``stop()`` to stop it and return to the beginning. ``is_playing()`` tells you
@@ -36,7 +36,7 @@ from typing import Any
 from magicbot import feedback
 
 
-class Orchestra:
+class Jukebox:
     """Play a deployed CTRE Chirp music file through a Talon FX motor."""
 
     # MagicBot injects these from robot attributes named after the component.
@@ -46,7 +46,7 @@ class Orchestra:
     def setup(self) -> None:
         """Connect the motor and load its music file."""
         if not self.music_file.strip():
-            raise ValueError("orchestra_music_file must name a .chrp music file")
+            raise ValueError("jukebox_music_file must name a .chrp music file")
 
         from phoenix6 import orchestra as phoenix_orchestra
 

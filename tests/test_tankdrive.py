@@ -8,7 +8,7 @@ from types import ModuleType, SimpleNamespace
 
 
 def _load_tankdrive_module(monkeypatch, simulation: bool = False):
-    """Load the template against focused WPILib fakes."""
+    """Load the packaged component against focused WPILib fakes."""
     calls = []
 
     class FakeRotation2d:
@@ -103,7 +103,6 @@ def _load_tankdrive_module(monkeypatch, simulation: bool = False):
         Path(__file__).resolve().parents[1]
         / "src"
         / "pybot_sdk"
-        / "templates"
         / "components"
         / "tankdrive.py"
     )
