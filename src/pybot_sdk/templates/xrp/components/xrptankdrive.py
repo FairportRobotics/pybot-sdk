@@ -7,12 +7,18 @@ import wpimath.geometry
 import wpimath.kinematics
 import xrp
 from ntcore import NetworkTableInstance
+from wpimath import units as wpimath_units
 
 
 class XRPTankDrive:
-    """Tank drive component for the XRP robot."""
+    """Tank drive component for the XRP robot.
+
+    Distance commands accept inches by default and convert to the meters used
+    by the XRP template's encoders. Feet and meters are also supported.
+    """
 
     # Injected variables
+    distance_pid: tuple[float, float, float]
     heading_pid: tuple[float, float, float]
     gyro: xrp.XRPGyro
     left_motor: xrp.XRPMotor
@@ -23,8 +29,11 @@ class XRPTankDrive:
     def setup(self) -> None:
         """Set up the tank drive component."""
         self.target_heading: float | None = None
+        self.target_distance: float | None = None
         self.drive = wpilib.drive.DifferentialDrive(self.left_motor, self.right_motor)
         self.heading_controller = wpimath.controller.PIDController(*self.heading_pid)
+        self.distance_controller = wpimath.controller.PIDController(*self.distance_pid)
+        self.distance_controller.setTolerance(0.01)
         self.heading_min = 0.0
         self.heading_max = 360.0
         self.heading_controller.enableContinuousInput(
@@ -61,6 +70,7 @@ class XRPTankDrive:
     def execute(self) -> None:
         """Run the component's periodic behavior."""
         rotation = self.rotation
+        throttle = self.throttle
         if self.target_heading is not None:
             if not self.heading_min <= self.target_heading <= self.heading_max:
                 raise ValueError(
@@ -70,17 +80,61 @@ class XRPTankDrive:
                 self.gyro.getAngle(), self.target_heading
             )
 
-        self.go(self.throttle, rotation)
+        if self.target_distance is not None:
+            throttle = self.distance_controller.calculate(
+                self.distance(), self.target_distance
+            )
+            if self.distance_controller.atSetpoint():
+                throttle = 0.0
+                self._cancel_distance_target()
+
+        self.go(throttle, rotation)
         self.update_pose()
+
+    def distance(self) -> float:
+        """Get the current distance from the average of the left and right encoders."""
+        return (self.left_encoder.getDistance() + self.right_encoder.getDistance()) / 2
 
     def go(self, throttle: float, rotation: float, square_inputs: bool = True) -> None:
         """Drive the robot using arcade drive."""
         self.drive.arcadeDrive(throttle, rotation, squareInputs=square_inputs)
 
+    @staticmethod
+    def _distance_to_meters(distance: float, units: str) -> float:
+        """Convert a distance in inches, feet, or meters to meters."""
+        normalized_units = units.strip().lower()
+        if normalized_units in ("in", "inch", "inches"):
+            return wpimath_units.inchesToMeters(distance)
+        if normalized_units in ("ft", "foot", "feet"):
+            return wpimath_units.feetToMeters(distance)
+        if normalized_units in ("m", "meter", "meters"):
+            return distance
+        raise ValueError(
+            f"Unsupported distance unit {units!r}; use inches, feet, or meters"
+        )
+
+    def go_backward(self, distance: float, units: str = "inches") -> None:
+        """Drive backward by a distance, in inches by default."""
+        self.distance_controller.reset()
+        converted_distance = self._distance_to_meters(distance, units)
+        self.target_distance = self.distance() - converted_distance
+
+    def go_forward(self, distance: float, units: str = "inches") -> None:
+        """Drive forward by a distance, in inches by default."""
+        self.distance_controller.reset()
+        converted_distance = self._distance_to_meters(distance, units)
+        self.target_distance = self.distance() + converted_distance
+
     def reset_encoders(self) -> None:
         """Reset the left and right encoders."""
+        self._cancel_distance_target()
         self.left_encoder.reset()
         self.right_encoder.reset()
+
+    def _cancel_distance_target(self) -> None:
+        """Clear a distance command and its accumulated PID state."""
+        self.target_distance = None
+        self.distance_controller.reset()
 
     def reset_gyro(self) -> None:
         """Reset the gyro."""
@@ -88,7 +142,12 @@ class XRPTankDrive:
 
     def stop(self) -> None:
         """Stop the robot."""
+        self._cancel_distance_target()
         self.drive.stopMotor()
+
+    def turn(self, degrees: float, ccw: bool = True) -> None:
+        """Turn the robot by a specified number of degrees."""
+        self.target_heading = self.gyro.getAngle() + (degrees if ccw else -degrees)
 
     def update_pose(self) -> None:
         """Update the robot's pose using odometry."""

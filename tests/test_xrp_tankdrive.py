@@ -42,6 +42,10 @@ def _load_tankdrive_module(monkeypatch):
         },
     )
     wpimath.kinematics = kinematics
+    units = ModuleType("wpimath.units")
+    units.inchesToMeters = lambda inches: inches * 0.0254
+    units.feetToMeters = lambda feet: feet * 0.3048
+    wpimath.units = units
     xrp = ModuleType("xrp")
     xrp.XRPGyro = type("XRPGyro", (), {})
     xrp.XRPMotor = type("XRPMotor", (), {})
@@ -67,6 +71,7 @@ def _load_tankdrive_module(monkeypatch):
         "wpimath.controller": controller,
         "wpimath.geometry": geometry,
         "wpimath.kinematics": kinematics,
+        "wpimath.units": units,
         "xrp": xrp,
         "ntcore": ntcore,
     }
@@ -98,6 +103,9 @@ class FakePIDController:
         self.gains = (p, i, d)
         self.continuous_input = None
         self.calculations = []
+        self.tolerance = None
+        self.is_at_setpoint = False
+        self.reset_count = 0
 
     def enableContinuousInput(self, minimum: float, maximum: float) -> None:
         """Record the configured input range."""
@@ -108,11 +116,26 @@ class FakePIDController:
         self.calculations.append((measurement, setpoint))
         return 0.4
 
+    def setTolerance(self, tolerance: float) -> None:
+        """Record the configured position tolerance."""
+        self.tolerance = tolerance
 
-def _make_drivetrain(module, heading_pid=(0.02, 0.0, 0.0)):
+    def atSetpoint(self) -> bool:
+        """Return whether the simulated controller has reached its target."""
+        return self.is_at_setpoint
+
+    def reset(self) -> None:
+        """Record a controller reset."""
+        self.reset_count += 1
+
+
+def _make_drivetrain(
+    module, heading_pid=(0.02, 0.0, 0.0), distance_pid=(1.0, 0.0, 0.0)
+):
     calls = []
     drivetrain = module.XRPTankDrive()
     drivetrain.heading_pid = heading_pid
+    drivetrain.distance_pid = distance_pid
     drivetrain.left_motor = object()
     drivetrain.right_motor = object()
     drivetrain.gyro = SimpleNamespace(
@@ -178,3 +201,107 @@ def test_execute_rejects_target_heading_outside_range(monkeypatch):
         assert "target_heading" in str(error)
     else:
         raise AssertionError("expected an out-of-range target_heading to fail")
+
+
+def test_distance_commands_default_to_inches_and_support_explicit_units(monkeypatch):
+    """Convert requested distances to meters relative to average encoder distance."""
+    module = _load_tankdrive_module(monkeypatch)
+    distance_pid = (0.8, 0.01, 0.02)
+    drivetrain, calls = _make_drivetrain(module, distance_pid=distance_pid)
+    drivetrain.left_encoder.getDistance = lambda: 1.0
+    drivetrain.right_encoder.getDistance = lambda: 3.0
+
+    drivetrain.go_forward(0.5, units="meters")
+    assert drivetrain.target_distance == 2.5
+    assert drivetrain.distance_controller.gains == distance_pid
+    assert drivetrain.distance_controller.tolerance == 0.01
+
+    drivetrain.execute()
+
+    assert drivetrain.distance_controller.calculations == [(2.0, 2.5)]
+    assert calls == [(0.4, -0.2, True)]
+
+    drivetrain.go_backward(1.25, units="meters")
+    assert drivetrain.target_distance == 0.75
+
+    drivetrain.go_forward(10.0)
+    assert drivetrain.target_distance == 2.254
+
+    drivetrain.go_backward(1.0, units="feet")
+    assert drivetrain.target_distance == 1.6952
+
+
+def test_distance_commands_reject_unsupported_units(monkeypatch):
+    """Raise a clear error for unknown distance units."""
+    module = _load_tankdrive_module(monkeypatch)
+    drivetrain, _ = _make_drivetrain(module)
+
+    try:
+        drivetrain.go_forward(1.0, units="yards")
+    except ValueError as error:
+        assert "Unsupported distance unit" in str(error)
+    else:
+        raise AssertionError("expected unsupported distance units to fail")
+
+
+def test_distance_command_clears_when_at_setpoint(monkeypatch):
+    """Return control to the manual throttle after reaching the target."""
+    module = _load_tankdrive_module(monkeypatch)
+    drivetrain, calls = _make_drivetrain(module)
+    drivetrain.go_forward(1.0)
+    drivetrain.distance_controller.is_at_setpoint = True
+
+    drivetrain.execute()
+
+    assert drivetrain.target_distance is None
+    assert calls == [(0.0, -0.2, True)]
+
+    drivetrain.distance_controller.is_at_setpoint = False
+    drivetrain.execute()
+    assert calls[-1] == (0.6, -0.2, True)
+
+
+def test_stop_cancels_distance_command(monkeypatch):
+    """Do not resume PID-controlled motion after stop is called."""
+    module = _load_tankdrive_module(monkeypatch)
+    drivetrain, calls = _make_drivetrain(module)
+    stop_calls = []
+    drivetrain.drive.stopMotor = lambda: stop_calls.append("stop")
+    drivetrain.go_forward(1.0)
+
+    drivetrain.stop()
+    drivetrain.execute()
+
+    assert drivetrain.target_distance is None
+    assert stop_calls == ["stop"]
+    assert calls == [(0.6, -0.2, True)]
+
+
+def test_reset_encoders_cancels_distance_command(monkeypatch):
+    """Avoid retaining a target based on encoder readings that were reset."""
+    module = _load_tankdrive_module(monkeypatch)
+    drivetrain, _ = _make_drivetrain(module)
+    drivetrain.go_forward(1.0)
+
+    drivetrain.reset_encoders()
+
+    assert drivetrain.target_distance is None
+
+
+def test_xrp_template_configures_distance_pid_gains():
+    """Provide default distance PID gains to the generated robot."""
+    constants_path = (
+        Path(__file__).resolve().parents[1]
+        / "src"
+        / "pybot_sdk"
+        / "templates"
+        / "xrp"
+        / "constants.py"
+    )
+    spec = spec_from_file_location("xrp_template_constants", constants_path)
+    assert spec is not None
+    assert spec.loader is not None
+    constants = module_from_spec(spec)
+    spec.loader.exec_module(constants)
+
+    assert constants.Robot.DISTANCE_PID == (1.0, 0.0, 0.0)

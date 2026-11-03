@@ -165,6 +165,26 @@ def test_new_creates_xrp_project(tmp_path: Path, monkeypatch) -> None:
     assert (destination / "robot.py").is_file()
     assert (destination / "components" / "xrptankdrive.py").is_file()
     assert (destination / "autonomous" / "do_nothing.py").is_file()
+    assert not list(destination.rglob("__pycache__"))
+    assert not list(destination.rglob("*.pyc"))
+    assert not list(destination.rglob("*.pyo"))
+
+
+def test_copy_template_skips_python_bytecode(tmp_path: Path) -> None:
+    """Do not copy interpreter caches into a generated project."""
+    source = tmp_path / "source"
+    destination = tmp_path / "destination"
+    (source / "components" / "__pycache__").mkdir(parents=True)
+    (source / "robot.py").write_text("print('robot')\n")
+    (source / "robot.pyc").write_bytes(b"bytecode")
+    (source / "components" / "__pycache__" / "robot.pyc").write_bytes(b"bytecode")
+    destination.mkdir()
+
+    cli._copy_template(source, destination)
+
+    assert (destination / "robot.py").read_text() == "print('robot')\n"
+    assert not (destination / "robot.pyc").exists()
+    assert not (destination / "components" / "__pycache__").exists()
 
 
 def test_new_creates_single_file_sysid_project(
