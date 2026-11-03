@@ -24,6 +24,8 @@ LATEST_RELEASE_URL = (
 
 def _copy_template(source, destination: Path) -> None:
     for item in source.iterdir():
+        if item.name == "__pycache__" or item.name.endswith((".pyc", ".pyo")):
+            continue
         target = destination / item.name
         if item.is_dir():
             target.mkdir()

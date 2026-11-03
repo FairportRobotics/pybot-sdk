@@ -69,6 +69,17 @@ degrees to use PID control to turn along the shortest direction; set it back to
 `None` to resume manual rotation control. Configure the heading controller's
 `(P, I, D)` gains in `constants.Robot.HEADING_PID`.
 
+The XRP drivetrain also supports relative distance commands:
+`drivetrain.go_forward(distance)` and `drivetrain.go_backward(distance)`.
+Distances are in inches by default. Pass `units="feet"` or `units="meters"` to
+either method to use those units instead; targets are converted to meters to
+match the starter template's encoder configuration.
+The controller stops the distance command within 0.01 meters of its target, then
+returns to manual throttle control. `drivetrain.stop()` and
+`drivetrain.reset_encoders()` cancel an active distance command. Tune the
+distance controller's `(P, I, D)` gains in `constants.Robot.DISTANCE_PID` for
+the robot before relying on autonomous movement.
+
 The MagicBot starter template targets Python 3.14 and RobotPy 2026. Its RobotPy
 simulation test is the MVP compatibility proxy for roboRIO operation; physical
 deployment remains unverified until a roboRIO is available.
