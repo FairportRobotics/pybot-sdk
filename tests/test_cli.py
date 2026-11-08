@@ -115,6 +115,7 @@ def test_list_components_prints_addable_components(capsys) -> None:
         "ledstrip",
         "limelight",
         "logger",
+        "smooth_driver",
         "swervedrive",
         "swervemodule",
         "tankdrive",
