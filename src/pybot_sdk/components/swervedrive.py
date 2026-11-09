@@ -233,6 +233,10 @@ class SwerveDrive:
                 self._get_heading(),
             )
 
+        self._execute_chassis_speeds(chassis_speeds)
+
+    def _execute_chassis_speeds(self, chassis_speeds: ChassisSpeeds) -> None:
+        """Set module targets from robot-relative chassis speeds and update pose."""
         states = self.kinematics.toSwerveModuleStates(chassis_speeds)
         states = self.kinematics.desaturateWheelSpeeds(states, self.max_speed_mps)
         for module, state in zip(self._modules, states, strict=True):

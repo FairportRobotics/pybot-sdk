@@ -115,7 +115,7 @@ def test_list_components_prints_addable_components(capsys) -> None:
         "ledstrip",
         "limelight",
         "logger",
-        "smooth_driver",
+        "smooth",
         "swervedrive",
         "swervemodule",
         "tankdrive",
@@ -276,6 +276,36 @@ def test_add_tankdrive_component_copies_template_to_project_components(
         "pybot_sdk"
     ).joinpath("components", "tankdrive.py").read_bytes()
     assert capsys.readouterr().out == "Added component tankdrive to components/\n"
+
+
+def test_add_smooth_component_copies_drivetrains_and_preserves_gyro(
+    tmp_path: Path,
+    monkeypatch,
+    capsys,
+) -> None:
+    """Copy the matching drivetrain dependencies without replacing a team gyro."""
+    project = tmp_path / "robot_project"
+    components = project / "components"
+    components.mkdir(parents=True)
+    gyro = components / "gyro.py"
+    gyro.write_text("# existing team gyro\n")
+    monkeypatch.chdir(project)
+
+    assert main(["add", "component", "smooth"]) == 0
+    assert gyro.read_text() == "# existing team gyro\n"
+    for name in (
+        "tankdrive.py",
+        "swervemodule.py",
+        "swervedrive.py",
+        "smooth.py",
+    ):
+        assert (components / name).read_bytes() == resources.files(
+            "pybot_sdk"
+        ).joinpath("components", name).read_bytes()
+    assert capsys.readouterr().out == (
+        "Added smooth.py and its drivetrain components, plus gyro.py "
+        "if not already present\n"
+    )
 
 
 def test_add_swervedrive_copies_its_components_and_gyro(

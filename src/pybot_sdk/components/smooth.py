@@ -30,12 +30,12 @@ SmoothDriver, then the drivetrain, because MagicBot runs components in the
 order they are declared::
 
     from components.gyro import Gyro
-    from components.smooth_driver import SmoothDriver
+    from components.smooth import SmoothDriver, SmoothSwerveDrive, SmoothTankDrive
 
     class Robot(MagicRobot):
         gyro: Gyro
         smooth_driver: SmoothDriver
-        drivetrain: TankDrive  # or SwerveDrive
+        drivetrain: SmoothTankDrive  # or SmoothSwerveDrive
 
         def teleopInit(self):
             self.gyro.reset()
@@ -57,12 +57,20 @@ order they are declared::
                 rot=-self.stick.getRightX(),
             )
 
-The drivetrain then reads ``self.smooth_driver.speeds`` in its own
-``execute()``. Because the drivetrain is declared after SmoothDriver, the value
-is current for this loop.
+``SmoothTankDrive`` and ``SmoothSwerveDrive`` read
+``self.smooth_driver.speeds`` in their own ``execute()`` methods. Declare the
+selected drivetrain after ``SmoothDriver`` so the speed command is current for
+that loop. For swerve, declare the four ``SwerveModule`` components after the
+drivetrain.
+
+For ``SmoothTankDrive``, set ``drivetrain_max_speed_mps`` to the maximum
+wheel speed in meters per second represented by full motor output. Its strafe
+input is ignored because a differential drivetrain cannot move sideways.
+``SmoothSwerveDrive`` uses ``drivetrain_max_speed_mps`` and
+``drivetrain_max_angular_speed_rps`` as in ``SwerveDrive``.
 
 All tunables (maximums, slew rates, heading hold gains) appear in
-NetworkTables under ``/components/smooth_driver`` and can be changed live.
+NetworkTables under ``/components/smooth`` and can be changed live.
 Speeds are in m/s and rad/s.
 
 ``control_loop_wait_time`` is the loop period. MagicBot's default is 0.02 s.
@@ -74,14 +82,14 @@ from __future__ import annotations
 
 import math
 
-from components.gyro import Gyro
 from magicbot import feedback, tunable, will_reset_to
 from wpimath import applyDeadband
 from wpimath.controller import PIDController
 from wpimath.kinematics import ChassisSpeeds
 
-# ---------------------------------------------------------------------------
-# MagicBot component
+from .gyro import Gyro
+from .swervedrive import SwerveDrive
+from .tankdrive import Tankdrive
 
 
 class SmoothDriver:
@@ -199,12 +207,7 @@ class SmoothDriver:
         self.speeds = ChassisSpeeds()
 
     def set_mode(self, mode: str) -> None:
-        """Choose "normal", "boost", or "precision" for the next loop.
-
-        The class constants ``SmoothDriver.NORMAL``, ``BOOST`` and
-        ``PRECISION`` hold these strings and avoid typos. Names are not case
-        sensitive. Raises ValueError for an unknown mode.
-        """
+        """Choose "normal", "boost", or "precision" for the next loop."""
         cleaned = mode.strip().lower()
         valid_modes = ("normal", "boost", "precision")
         if cleaned not in valid_modes:
@@ -379,3 +382,59 @@ class SmoothDriver:
             )
 
         self.speeds = ChassisSpeeds(self._vx, self._vy, self._omega)
+
+
+class SmoothTankDrive(Tankdrive):
+    """Drive a tank robot using physical chassis speeds from SmoothDriver."""
+
+    smooth_driver: SmoothDriver
+    max_speed_mps: float
+
+    def setup(self) -> None:
+        """Set up tank drive and validate its physical wheel-speed limit."""
+        super().setup()
+        if self.max_speed_mps <= 0:
+            raise ValueError("smooth_tankdrive_max_speed_mps must be greater than zero")
+
+    def execute(self) -> None:
+        """Convert chassis velocity into bounded left and right motor commands."""
+        wheel_speeds = self.kinematics.toWheelSpeeds(self.smooth_driver.speeds)
+        max_wheel_speed = max(abs(wheel_speeds.left), abs(wheel_speeds.right))
+        scale = max(1.0, max_wheel_speed / self.max_speed_mps)
+        self.drive.tankDrive(
+            wheel_speeds.left / (self.max_speed_mps * scale),
+            wheel_speeds.right / (self.max_speed_mps * scale),
+            squareInputs=False,
+        )
+
+        if self.odometry is not None:
+            self.pose = self.odometry.update(
+                self._get_heading(),
+                self._get_left_distance(),
+                self._get_right_distance(),
+            )
+
+    def stop(self) -> None:
+        """Reset the smooth command and stop both drivetrain motors."""
+        self.smooth_driver.reset()
+        self.drive.stopMotor()
+
+
+class SmoothSwerveDrive(SwerveDrive):
+    """Drive a swerve robot using physical chassis speeds from SmoothDriver."""
+
+    smooth_driver: SmoothDriver
+
+    def execute(self) -> None:
+        """Apply smoothed robot-relative speeds, then update odometry."""
+        if self._stop_requested:
+            super().execute()
+            self._stop_requested = False
+            return
+
+        self._execute_chassis_speeds(self.smooth_driver.speeds)
+
+    def stop(self) -> None:
+        """Reset the smooth command and stop all swerve modules."""
+        self.smooth_driver.reset()
+        super().stop()

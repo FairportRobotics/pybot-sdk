@@ -43,15 +43,23 @@ def _load_tankdrive_module(monkeypatch, simulation: bool = False):
         def curvatureDrive(self, throttle, turn, quick_turn):
             calls.append(("curvature", throttle, turn, quick_turn))
 
-        def tankDrive(self, left, right):
-            calls.append(("tank", left, right))
+        def tankDrive(self, left, right, squareInputs=True):
+            calls.append(("tank", left, right, squareInputs))
 
         def stopMotor(self):
             calls.append(("stop",))
 
     class FakeDifferentialDriveKinematics:
         def __init__(self, track_width):
+            self.track_width = track_width
             calls.append(("kinematics", track_width))
+
+        def toWheelSpeeds(self, chassis_speeds):
+            half_width = self.track_width / 2
+            return SimpleNamespace(
+                left=chassis_speeds.vx - chassis_speeds.omega * half_width,
+                right=chassis_speeds.vx + chassis_speeds.omega * half_width,
+            )
 
     class FakeDifferentialDriveOdometry:
         def __init__(self, heading, left_distance, right_distance):
@@ -66,6 +74,12 @@ def _load_tankdrive_module(monkeypatch, simulation: bool = False):
                 ("reset_odometry", heading, left_distance, right_distance, pose)
             )
 
+    class FakeChassisSpeeds:
+        def __init__(self, vx=0.0, vy=0.0, omega=0.0):
+            self.vx = vx
+            self.vy = vy
+            self.omega = omega
+
     wpilib = ModuleType("wpilib")
     wpilib.__path__ = []
     wpilib.RobotBase = SimpleNamespace(isSimulation=lambda: simulation)
@@ -75,15 +89,20 @@ def _load_tankdrive_module(monkeypatch, simulation: bool = False):
 
     magicbot = ModuleType("magicbot")
     magicbot.feedback = lambda function: function
+    magicbot.tunable = lambda value: value
+    magicbot.will_reset_to = lambda value: value
 
     wpimath = ModuleType("wpimath")
     wpimath.__path__ = []
     geometry = ModuleType("wpimath.geometry")
     geometry.Pose2d = FakePose2d
     geometry.Rotation2d = FakeRotation2d
+    controller = ModuleType("wpimath.controller")
+    controller.PIDController = object
     kinematics = ModuleType("wpimath.kinematics")
     kinematics.DifferentialDriveKinematics = FakeDifferentialDriveKinematics
     kinematics.DifferentialDriveOdometry = FakeDifferentialDriveOdometry
+    kinematics.ChassisSpeeds = FakeChassisSpeeds
     units = ModuleType("wpimath.units")
     units.inchesToMeters = lambda inches: inches * 0.0254
     units.feetToMeters = lambda feet: feet * 0.3048
@@ -95,9 +114,12 @@ def _load_tankdrive_module(monkeypatch, simulation: bool = False):
     monkeypatch.setitem(sys.modules, "magicbot", magicbot)
     monkeypatch.setitem(sys.modules, "wpimath", wpimath)
     monkeypatch.setitem(sys.modules, "wpimath.geometry", geometry)
+    monkeypatch.setitem(sys.modules, "wpimath.controller", controller)
     monkeypatch.setitem(sys.modules, "wpimath.kinematics", kinematics)
     monkeypatch.setitem(sys.modules, "wpimath.units", units)
     wpimath.units = units
+    wpimath.controller = controller
+    wpimath.applyDeadband = lambda value, deadband: value
 
     template_path = (
         Path(__file__).resolve().parents[1]
@@ -187,7 +209,7 @@ def test_setup_builds_kinematics_odometry_and_drives_each_mode(monkeypatch) -> N
     assert [call for call in calls if call[0] in ("arcade", "curvature", "tank")] == [
         ("arcade", 0.5, -0.25),
         ("curvature", 0.5, -0.25, True),
-        ("tank", 0.2, 0.4),
+        ("tank", 0.2, 0.4, True),
     ]
     assert isclose(drivetrain.pose.X(), 0.3048)
     assert isclose(drivetrain.pose.Y(), 0.6096)
@@ -207,6 +229,71 @@ def test_missing_odometry_sensors_do_not_prevent_driving(monkeypatch) -> None:
     assert drivetrain.odometry is None
     assert drivetrain.pose.X() == 0.0
     assert ("arcade", 0.0, 0.0) in calls
+
+
+def test_smooth_tankdrive_maps_physical_speeds_to_bounded_wheel_commands(
+    monkeypatch,
+) -> None:
+    """Convert chassis speed to tank commands and preserve the wheel ratio."""
+    module, calls, _, _ = _load_tankdrive_module(monkeypatch)
+
+    package_name = "pybot_sdk.components"
+    tankdrive_module = ModuleType(f"{package_name}.tankdrive")
+    tankdrive_module.Tankdrive = module.Tankdrive
+    monkeypatch.setitem(sys.modules, f"{package_name}.tankdrive", tankdrive_module)
+    swervedrive_module = ModuleType(f"{package_name}.swervedrive")
+    swervedrive_module.SwerveDrive = type("SwerveDrive", (), {})
+    monkeypatch.setitem(
+        sys.modules, f"{package_name}.swervedrive", swervedrive_module
+    )
+    gyro_module = ModuleType(f"{package_name}.gyro")
+    gyro_module.Gyro = type("Gyro", (), {})
+    monkeypatch.setitem(sys.modules, f"{package_name}.gyro", gyro_module)
+
+    template_path = (
+        Path(__file__).resolve().parents[1]
+        / "src"
+        / "pybot_sdk"
+        / "components"
+        / "smooth.py"
+    )
+    spec = spec_from_file_location(
+        f"{package_name}.smooth", template_path
+    )
+    assert spec is not None and spec.loader is not None
+    smooth_module = module_from_spec(spec)
+    monkeypatch.setitem(sys.modules, spec.name, smooth_module)
+    spec.loader.exec_module(smooth_module)
+
+    drivetrain = smooth_module.SmoothTankDrive()
+    drivetrain.components = {"left_motor": object(), "right_motor": object()}
+    drivetrain.track_width = 24.0
+    drivetrain.units = "in"
+    drivetrain.max_speed_mps = 3.0
+    drivetrain.smooth_driver = SimpleNamespace(
+        speeds=SimpleNamespace(vx=2.0, vy=0.0, omega=1.0)
+    )
+    drivetrain.setup()
+    drivetrain.execute()
+
+    command = next(call for call in calls if call[0] == "tank")
+    half_width = 0.6096 / 2
+    left_speed = 2.0 - half_width
+    right_speed = 2.0 + half_width
+    assert isclose(command[1], left_speed / 3.0)
+    assert isclose(command[2], right_speed / 3.0)
+    assert command[3] is False
+
+    drivetrain.smooth_driver.speeds = SimpleNamespace(
+        vx=4.0, vy=0.0, omega=0.0
+    )
+    drivetrain.execute()
+    assert [call for call in calls if call[0] == "tank"][-1] == (
+        "tank",
+        1.0,
+        1.0,
+        False,
+    )
 
 
 def test_simulation_readings_update_odometry_in_configured_units(monkeypatch) -> None:

@@ -7,7 +7,7 @@ Run from the project root with ``python -m pytest tests``.
 import math
 
 import pytest
-from components.smooth_driver import SmoothDriver
+from components.smooth import SmoothDriver
 from magicbot.magic_tunable import setup_tunables
 from wpimath.geometry import Rotation2d
 
@@ -42,7 +42,7 @@ class Harness:
         self.driver = SmoothDriver()
         self.driver.gyro = self.gyro
         self.driver.control_loop_wait_time = DT
-        setup_tunables(self.driver, "smooth_driver")
+        setup_tunables(self.driver, "smooth")
         self.driver.setup()
         self.disturbance_dps = 0.0
 

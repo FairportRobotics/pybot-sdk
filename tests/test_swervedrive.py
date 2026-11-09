@@ -249,6 +249,8 @@ def _load_components(monkeypatch, simulation: bool = True):
 
     magicbot = ModuleType("magicbot")
     magicbot.feedback = lambda method: method
+    magicbot.tunable = lambda value: value
+    magicbot.will_reset_to = lambda value: value
     monkeypatch.setitem(sys.modules, "magicbot", magicbot)
 
     wpimath = ModuleType("wpimath")
@@ -259,6 +261,7 @@ def _load_components(monkeypatch, simulation: bool = True):
     geometry.Pose2d = FakePose2d
     geometry.Rotation2d = FakeRotation2d
     geometry.Translation2d = FakeTranslation2d
+    wpimath.applyDeadband = lambda value, deadband: value
     kinematics = ModuleType("wpimath.kinematics")
     kinematics.ChassisSpeeds = FakeChassisSpeeds
     kinematics.SwerveDrive4Kinematics = FakeSwerveDrive4Kinematics
@@ -441,6 +444,42 @@ def test_drive_turn_targets_preserve_module_order_after_desaturation(monkeypatch
     assert [module._desired_state.speed for module in modules] == pytest.approx(
         [-0.1, 0.1, -0.1, 0.1]
     )
+
+
+def test_smooth_swervedrive_uses_physical_robot_relative_speeds(monkeypatch):
+    """Feed SmoothDriver speeds through the existing module/odometry pipeline."""
+    module_class, _ = _load_components(monkeypatch)
+    package_name = "pybot_sdk.components"
+    tankdrive_module = ModuleType(f"{package_name}.tankdrive")
+    tankdrive_module.Tankdrive = type("Tankdrive", (), {})
+    monkeypatch.setitem(sys.modules, f"{package_name}.tankdrive", tankdrive_module)
+
+    component_directory = (
+        Path(__file__).resolve().parents[1] / "src" / "pybot_sdk" / "components"
+    )
+    module_name = f"{package_name}.smooth"
+    spec = importlib.util.spec_from_file_location(
+        module_name, component_directory / "smooth.py"
+    )
+    assert spec is not None and spec.loader is not None
+    smooth_module = importlib.util.module_from_spec(spec)
+    monkeypatch.setitem(sys.modules, module_name, smooth_module)
+    spec.loader.exec_module(smooth_module)
+
+    modules = [_make_module(module_class) for _ in range(4)]
+    drive = _make_drive(smooth_module.SmoothSwerveDrive, modules)
+    drive.smooth_driver = SimpleNamespace(
+        speeds=FakeChassisSpeeds(1.0, 0.0, 0.0)
+    )
+    drive.execute()
+
+    assert [module._desired_state.speed for module in modules] == pytest.approx(
+        [1.0, 1.0, 1.0, 1.0]
+    )
+    assert [
+        module._desired_state.angle.degrees() for module in modules
+    ] == pytest.approx([0.0, 0.0, 0.0, 0.0])
+    assert FakeSwerveDrive4Odometry.calls[-1][0] == "update"
 
 
 def test_drive_rejects_bad_limits_and_simulation_is_explicit(monkeypatch):

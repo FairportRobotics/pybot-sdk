@@ -59,9 +59,17 @@ def add_component(component_name: str, destination: Path) -> None:
         raise ValueError(f"unknown component: {component_name}")
 
     component_directory = resources.files("pybot_sdk").joinpath("components")
-    component_names = {
+    component_dependencies = {
+        "smooth": (
+            "gyro",
+            "tankdrive",
+            "swervemodule",
+            "swervedrive",
+            "smooth",
+        ),
         "swervedrive": ("gyro", "swervemodule", "swervedrive"),
-    }.get(component_name, (component_name,))
+    }
+    component_names = component_dependencies.get(component_name, (component_name,))
 
     templates = [component_directory.joinpath(f"{name}.py") for name in component_names]
     if any(not template.is_file() for template in templates):
@@ -70,9 +78,9 @@ def add_component(component_name: str, destination: Path) -> None:
     for template in templates:
         target = destination / template.name
         if (
-            component_name == "swervedrive"
-            and template.name == "gyro.py"
+            template.name == "gyro.py"
             and target.exists()
+            and (component_name == "smooth" or component_name == "swervedrive")
         ):
             continue
         target.write_bytes(template.read_bytes())
@@ -230,7 +238,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"pybot: {error}", file=sys.stderr)
             return 2
 
-        if args.component_name == "swervedrive":
+        if args.component_name == "smooth":
+            print(
+                "Added smooth.py and its drivetrain components, plus gyro.py "
+                "if not already present"
+            )
+        elif args.component_name == "swervedrive":
             print(
                 "Added SwerveDrive components: swervedrive.py, swervemodule.py, "
                 "and gyro.py if not already present"
