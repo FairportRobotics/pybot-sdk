@@ -28,6 +28,7 @@ class MyRobot(magicbot.MagicRobot):
         """Construct RobotPy objects before MagicBot injects the component."""
         # Create the hardware objects
         hardware = {
+            "gyro": xrp.XRPGyro(),
             "led": xrp.XRPOnBoardIO(),
             "servo": xrp.XRPServo(constants.Ids.SERVO),
             "rangefinder": xrp.XRPRangefinder(),
@@ -58,7 +59,7 @@ class MyRobot(magicbot.MagicRobot):
         right_encoder.setReverseDirection(True)
         left_encoder.setDistancePerPulse(constants.Robot.DISTANCE_PER_PULSE)
         ## Inject objects and parameters
-        self.drivetrain_gyro = xrp.XRPGyro()
+        self.drivetrain_gyro = hardware["gyro"]
         self.drivetrain_gyro_noise_threshold = constants.Robot.GYRO_NOISE_THRESHOLD
         self.drivetrain_distance_pid = constants.Robot.DISTANCE_PID
         self.drivetrain_heading_pid = constants.Robot.HEADING_PID
