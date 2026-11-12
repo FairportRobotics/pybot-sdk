@@ -6,6 +6,7 @@ import wpimath.controller
 import wpimath.geometry
 import wpimath.kinematics
 import xrp
+import magicbot
 from ntcore import NetworkTableInstance
 from wpimath import units as wpimath_units
 
@@ -91,13 +92,19 @@ class XRPTankDrive:
         self.go(throttle, rotation)
         self.update_pose()
 
+    # =========================================================================
+    # ||                         Helper functions                            ||
+    # =========================================================================
+
+    def _cancel_distance_target(self) -> None:
+        """Clear a distance command and its accumulated PID state."""
+        self.target_distance = None
+        self.distance_controller.reset()
+
+    @magicbot.feedback
     def distance(self) -> float:
         """Get the current distance from the average of the left and right encoders."""
-        return (self.left_encoder.getDistance() + self.right_encoder.getDistance()) / 2
-
-    def go(self, throttle: float, rotation: float, square_inputs: bool = True) -> None:
-        """Drive the robot using arcade drive."""
-        self.drive.arcadeDrive(throttle, rotation, squareInputs=square_inputs)
+        return (self.left_encoder.getDistance() + self.right_encoder.getDistance()) / 2    
 
     @staticmethod
     def _distance_to_meters(distance: float, units: str) -> float:
@@ -113,6 +120,10 @@ class XRPTankDrive:
             f"Unsupported distance unit {units!r}; use inches, feet, or meters"
         )
 
+    def go(self, throttle: float, rotation: float, square_inputs: bool = True) -> None:
+        """Drive the robot using arcade drive."""
+        self.drive.arcadeDrive(throttle, rotation, squareInputs=square_inputs)
+        
     def go_backward(self, distance: float, units: str = "inches") -> None:
         """Drive backward by a distance, in inches by default."""
         self.distance_controller.reset()
@@ -125,20 +136,25 @@ class XRPTankDrive:
         converted_distance = self._distance_to_meters(distance, units)
         self.target_distance = self.distance() + converted_distance
 
+    @magicbot.feedback
+    def left_encoder_count(self) -> float:
+        """Get the left encoder count."""
+        return self.left_encoder.get()
+
     def reset_encoders(self) -> None:
         """Reset the left and right encoders."""
         self._cancel_distance_target()
         self.left_encoder.reset()
         self.right_encoder.reset()
 
-    def _cancel_distance_target(self) -> None:
-        """Clear a distance command and its accumulated PID state."""
-        self.target_distance = None
-        self.distance_controller.reset()
-
     def reset_gyro(self) -> None:
         """Reset the gyro."""
         self.gyro.reset()
+
+    @magicbot.feedback
+    def right_encoder_count(self) -> float:
+        """Get the right encoder count."""
+        return self.right_encoder.get()
 
     def stop(self) -> None:
         """Stop the robot."""
@@ -158,3 +174,8 @@ class XRPTankDrive:
         )
         self.field.setRobotPose(self.pose)
         self.pose_publisher.set(self.pose)
+
+    @magicbot.feedback
+    def velocity(self) -> float:
+        """Get the average velocity of the left and right encoders."""
+        return (self.left_encoder.getRate() + self.right_encoder.getRate()) / 2

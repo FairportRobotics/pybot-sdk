@@ -30,7 +30,6 @@ class Robot:
     DISTANCE_PID = (1.0, 0.0, 0.0)
     HEADING_PID = (0.02, 0.0, 0.0)
     SERVO_CHANGE = 0.025
-    DEFAULT_DRIVETRAIN_CONTROL_STYLE = "arcade"
     DISTANCE_PER_PULSE = (
         math.pi * WHEEL_DIAMETER_M / (PULSES_PER_REVOLUTION * GEAR_RATIO)
     )
