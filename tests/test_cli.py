@@ -108,19 +108,15 @@ def test_update_reports_release_without_wheel(monkeypatch, capsys) -> None:
 
 def test_list_components_prints_addable_components(capsys) -> None:
     """List every packaged component template that can be added."""
+    component_directory = resources.files("pybot_sdk").joinpath("components")
+    expected_components = sorted(
+        item.name.removesuffix(".py")
+        for item in component_directory.iterdir()
+        if item.is_file() and item.name.endswith(".py")
+    )
+
     assert main(["list", "components"]) == 0
-    assert capsys.readouterr().out.splitlines() == [
-        "gyro",
-        "jukebox",
-        "ledstrip",
-        "limelight",
-        "logger",
-        "smooth_driver",
-        "swervedrive",
-        "swervemodule",
-        "tankdrive",
-        "xboxcontroller",
-    ]
+    assert capsys.readouterr().out.splitlines() == expected_components
 
 
 def test_list_templates_prints_supported_templates(capsys) -> None:

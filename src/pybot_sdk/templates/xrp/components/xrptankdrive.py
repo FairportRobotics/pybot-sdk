@@ -1,12 +1,12 @@
 """XRP Tank drive component."""
 
+import magicbot
 import wpilib
 import wpilib.drive
 import wpimath.controller
 import wpimath.geometry
 import wpimath.kinematics
 import xrp
-import magicbot
 from ntcore import NetworkTableInstance
 from wpimath import units as wpimath_units
 
@@ -104,7 +104,7 @@ class XRPTankDrive:
     @magicbot.feedback
     def distance(self) -> float:
         """Get the current distance from the average of the left and right encoders."""
-        return (self.left_encoder.getDistance() + self.right_encoder.getDistance()) / 2    
+        return (self.left_encoder.getDistance() + self.right_encoder.getDistance()) / 2
 
     @staticmethod
     def _distance_to_meters(distance: float, units: str) -> float:
@@ -123,7 +123,7 @@ class XRPTankDrive:
     def go(self, throttle: float, rotation: float, square_inputs: bool = True) -> None:
         """Drive the robot using arcade drive."""
         self.drive.arcadeDrive(throttle, rotation, squareInputs=square_inputs)
-        
+
     def go_backward(self, distance: float, units: str = "inches") -> None:
         """Drive backward by a distance, in inches by default."""
         self.distance_controller.reset()
